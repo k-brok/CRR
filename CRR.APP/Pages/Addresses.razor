@@ -1,0 +1,43 @@
+﻿@page "/addresses"
+
+<PageTitle>Addresses</PageTitle>
+
+<RadzenDataGrid Data="@addresses"
+                AllowFiltering="false" AllowSorting="false" PageSize="5"
+                AllowPaging="true" ShowPagingSummary="true"> <!-- Responsive mode uitzetten -->
+    <Columns>
+        <RadzenDataGridColumn Property="@nameof(Address.Name)" Title="Naam" Width="120px" />
+        <RadzenDataGridColumn Title="Straat" Width="auto"
+                              >
+            <Template Context="address">
+                @address.Street @address.Number
+            </Template>
+        </RadzenDataGridColumn>
+        <RadzenDataGridColumn Property="@nameof(Address.ZipCode)" Title="Postcode" Width="100px"
+                               />
+        <RadzenDataGridColumn Title="Acties" Width="60px">
+            <Template Context="address">
+                <RadzenButton Icon="edit" ButtonStyle="ButtonStyle.Primary"
+                              Size="ButtonSize.Small" Click="@(() => OpenAddress(address))" />
+            </Template>
+        </RadzenDataGridColumn>
+    </Columns>
+</RadzenDataGrid>
+
+
+@code {
+    private List<Address> addresses {get; set;} = new List<Address>();
+
+    protected override async Task OnInitializedAsync()
+    {
+        addresses = await _AddressService.GetAllAsync();
+    }
+
+    async Task OpenAddress(Address AddressData)
+    {
+         await DialogService.OpenAsync<CRR.APP.Dialog.AddressDialog>($"Address {AddressData.Name}",
+               new Dictionary<string, object>() { { "AddressData", AddressData } },
+               new DialogOptions() { Width = "700px", Height = "520px" });
+    }
+
+}

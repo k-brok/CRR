@@ -1,5 +1,7 @@
-using CRR.API.Entities;
+using CRR.Shared.Entities;
 using CRR.API.Interface;
+using CRR.Shared.DTOs;
+using CRR.Shared.Mappers;
 using Microsoft.AspNetCore.Builder;
 using Microsoft.AspNetCore.Http;
 
@@ -14,7 +16,8 @@ namespace CRR.API.Endpoints
             group.MapGet("/", async (IAddressService service) =>
             {
                 var all = await service.GetAllAsync();
-                return Results.Ok(all);
+                var AddressDtos = all.Select(t => t.ToDto());
+                return Results.Ok(AddressDtos);
             });
 
             group.MapGet("/{id:guid}", async (Guid id, IAddressService service) =>
@@ -25,13 +28,13 @@ namespace CRR.API.Endpoints
 
             group.MapPost("/", async (CreateAddressDto address, IAddressService service) =>
             {
-                var created = await service.CreateAsync(address);
+                var created = await service.CreateAsync(address.ToEntity());
                 return Results.Created($"/api/addresses/{created.Id}", created);
             });
 
             group.MapPut("/{id:guid}", async (Guid id, CreateAddressDto updated, IAddressService service) =>
             {
-                var result = await service.UpdateAsync(id, updated);
+                var result = await service.UpdateAsync(id, updated.ToEntity());
                 return result is not null ? Results.Ok(result) : Results.NotFound();
             });
 

@@ -1,7 +1,7 @@
-using CRR.API.DTOs;
-using CRR.API.Entities;
+using CRR.Shared.DTOs;
+using CRR.Shared.Entities;
 
-namespace CRR.API.Mappers;
+namespace CRR.Shared.Mappers;
 
 public static class TripExtensions
 {
@@ -14,6 +14,9 @@ public static class TripExtensions
             ToId = trip.ToId,
             Departure = trip.Departure,
             Arrival = trip.Arrival,
+            Remark = trip.Remark,
+            DepartureMileage = trip.DepartureMileage,
+            ArrivalMileage = trip.ArrivalMileage,
             Distance = new DistanceDto
             {
                 Business = trip.Distance.Business,
@@ -26,11 +29,13 @@ public static class TripExtensions
     {
         return new Trip
         {
-            Id = dto.Id,
             FromId = dto.FromId,
             ToId = dto.ToId,
             Departure = dto.Departure,
             Arrival = dto.Arrival,
+            Remark = dto.Remark,
+            DepartureMileage = dto.DepartureMileage,
+            ArrivalMileage = dto.ArrivalMileage,
             Distance = new Distance
             {
                 Business = dto.Distance.Business,

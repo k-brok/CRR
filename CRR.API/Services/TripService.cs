@@ -1,4 +1,4 @@
-using CRR.API.Entities;
+using CRR.Shared.Entities;
 using CRR.API.Interface;
 using CRR.API.Data;
 using Microsoft.EntityFrameworkCore;
@@ -30,6 +30,15 @@ namespace CRR.API.Services
                 .FirstOrDefaultAsync(t => t.Id == id);
         }
 
+        public async Task<Trip?> GetLatestAsync()
+        {
+            return await _context.Trips
+                .Include(t => t.From)
+                .Include(t => t.To)
+                .OrderByDescending(t => t.Arrival)
+                .FirstOrDefaultAsync();
+        }
+
         public async Task<Trip> CreateAsync(Trip trip)
         {
             _context.Trips.Add(trip);
@@ -44,6 +53,9 @@ namespace CRR.API.Services
 
             existing.FromId = updated.FromId;
             existing.ToId = updated.ToId;
+            existing.Remark = updated.Remark;
+            existing.DepartureMileage = updated.DepartureMileage;
+            existing.ArrivalMileage = updated.ArrivalMileage;
             existing.Departure = updated.Departure;
             existing.Arrival = updated.Arrival;
             existing.Distance = updated.Distance;

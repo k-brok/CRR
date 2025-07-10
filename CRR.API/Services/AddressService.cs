@@ -1,4 +1,4 @@
-using CRR.API.Entities;
+using CRR.Shared.Entities;
 using CRR.API.Interface;
 using CRR.API.Data;
 using Microsoft.EntityFrameworkCore;
@@ -37,7 +37,7 @@ namespace CRR.API.Services
             if (existing == null) return null;
 
             existing.Name = updatedAddress.Name;
-            existing.street = updatedAddress.street;
+            existing.Street = updatedAddress.Street;
             existing.Number = updatedAddress.Number;
             existing.ZipCode = updatedAddress.ZipCode;
             existing.Type = updatedAddress.Type;

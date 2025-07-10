@@ -1,5 +1,7 @@
-using CRR.API.Entities;
+using CRR.Shared.Entities;
 using CRR.API.Interface;
+using CRR.Shared.DTOs;
+using CRR.Shared.Mappers;
 using Microsoft.AspNetCore.Builder;
 using Microsoft.AspNetCore.Http;
 
@@ -21,6 +23,12 @@ public static class TripEndpoints
         group.MapGet("/{id:guid}", async (Guid id, ITripService service) =>
         {
             var trip = await service.GetByIdAsync(id);
+            return trip is not null ? Results.Ok(trip.ToDto()) : Results.NotFound();
+        });
+
+        group.MapGet("/latest", async (ITripService service) =>
+        {
+            var trip = await service.GetLatestAsync();
             return trip is not null ? Results.Ok(trip.ToDto()) : Results.NotFound();
         });
 

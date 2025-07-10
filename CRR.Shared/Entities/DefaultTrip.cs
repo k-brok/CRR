@@ -1,6 +1,6 @@
-using CRR.API.Enums;
+using CRR.Shared.Enums;
 
-namespace CRR.API.Entities{
+namespace CRR.Shared.Entities{
 	public class DefaultTrip : Trip{
 		public TripType Type {get; set;}
 	}

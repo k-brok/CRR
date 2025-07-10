@@ -3,6 +3,7 @@ using System;
 using CRR.API.Data;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.EntityFrameworkCore.Infrastructure;
+using Microsoft.EntityFrameworkCore.Migrations;
 using Microsoft.EntityFrameworkCore.Storage.ValueConversion;
 
 #nullable disable
@@ -10,14 +11,16 @@ using Microsoft.EntityFrameworkCore.Storage.ValueConversion;
 namespace CRR.API.Migrations
 {
     [DbContext(typeof(AppDbContext))]
-    partial class AppDbContextModelSnapshot : ModelSnapshot
+    [Migration("20250709085038_InitialCreate")]
+    partial class InitialCreate
     {
-        protected override void BuildModel(ModelBuilder modelBuilder)
+        /// <inheritdoc />
+        protected override void BuildTargetModel(ModelBuilder modelBuilder)
         {
 #pragma warning disable 612, 618
             modelBuilder.HasAnnotation("ProductVersion", "9.0.6");
 
-            modelBuilder.Entity("CRR.Shared.Entities.Address", b =>
+            modelBuilder.Entity("CRR.API.Entities.Address", b =>
                 {
                     b.Property<Guid>("Id")
                         .ValueGeneratedOnAdd()
@@ -47,7 +50,7 @@ namespace CRR.API.Migrations
                     b.ToTable("Addresses");
                 });
 
-            modelBuilder.Entity("CRR.Shared.Entities.Trip", b =>
+            modelBuilder.Entity("CRR.API.Entities.Trip", b =>
                 {
                     b.Property<Guid>("Id")
                         .ValueGeneratedOnAdd()
@@ -56,14 +59,8 @@ namespace CRR.API.Migrations
                     b.Property<DateTime>("Arrival")
                         .HasColumnType("TEXT");
 
-                    b.Property<int>("ArrivalMileage")
-                        .HasColumnType("INTEGER");
-
                     b.Property<DateTime>("Departure")
                         .HasColumnType("TEXT");
-
-                    b.Property<int>("DepartureMileage")
-                        .HasColumnType("INTEGER");
 
                     b.Property<string>("Discriminator")
                         .IsRequired()
@@ -71,10 +68,6 @@ namespace CRR.API.Migrations
                         .HasColumnType("TEXT");
 
                     b.Property<Guid>("FromId")
-                        .HasColumnType("TEXT");
-
-                    b.Property<string>("Remark")
-                        .IsRequired()
                         .HasColumnType("TEXT");
 
                     b.Property<Guid>("ToId")
@@ -93,9 +86,9 @@ namespace CRR.API.Migrations
                     b.UseTphMappingStrategy();
                 });
 
-            modelBuilder.Entity("CRR.Shared.Entities.DefaultTrip", b =>
+            modelBuilder.Entity("CRR.API.Entities.DefaultTrip", b =>
                 {
-                    b.HasBaseType("CRR.Shared.Entities.Trip");
+                    b.HasBaseType("CRR.API.Entities.Trip");
 
                     b.Property<int>("Type")
                         .HasColumnType("INTEGER");
@@ -103,21 +96,21 @@ namespace CRR.API.Migrations
                     b.HasDiscriminator().HasValue("DefaultTrip");
                 });
 
-            modelBuilder.Entity("CRR.Shared.Entities.Trip", b =>
+            modelBuilder.Entity("CRR.API.Entities.Trip", b =>
                 {
-                    b.HasOne("CRR.Shared.Entities.Address", "From")
+                    b.HasOne("CRR.API.Entities.Address", "From")
                         .WithMany()
                         .HasForeignKey("FromId")
                         .OnDelete(DeleteBehavior.Cascade)
                         .IsRequired();
 
-                    b.HasOne("CRR.Shared.Entities.Address", "To")
+                    b.HasOne("CRR.API.Entities.Address", "To")
                         .WithMany()
                         .HasForeignKey("ToId")
                         .OnDelete(DeleteBehavior.Cascade)
                         .IsRequired();
 
-                    b.OwnsOne("CRR.Shared.Entities.Distance", "Distance", b1 =>
+                    b.OwnsOne("CRR.API.Entities.Distance", "Distance", b1 =>
                         {
                             b1.Property<Guid>("TripId")
                                 .HasColumnType("TEXT");

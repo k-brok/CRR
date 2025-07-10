@@ -1,13 +1,13 @@
-using CRR.API.Entities;
+using CRR.Shared.Entities;
 
 namespace CRR.API.Interface
 {
     public interface IAddressService
     {
-        Task<IEnumerable<AddressDto>> GetAllAsync();
-        Task<AddressDto?> GetByIdAsync(Guid id);
-        Task<AddressDto> CreateAsync(CreateAddressDto address);
-        Task<AddressDto?> UpdateAsync(Guid id, CreateAddressDto updatedAddress);
+        Task<IEnumerable<Address>> GetAllAsync();
+        Task<Address?> GetByIdAsync(Guid id);
+        Task<Address> CreateAsync(Address address);
+        Task<Address?> UpdateAsync(Guid id, Address updatedAddress);
         Task<bool> DeleteAsync(Guid id);
     }
 }

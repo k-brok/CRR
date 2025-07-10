@@ -1,5 +1,5 @@
 using Microsoft.EntityFrameworkCore;
-using CRR.API.Entities;
+using CRR.Shared.Entities;
 
 namespace CRR.API.Data
 {

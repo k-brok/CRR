@@ -1,4 +1,4 @@
-namespace CRR.API.Enums{
+namespace CRR.Shared.Enums{
 	public enum TripType{
 		Business,
 		Private

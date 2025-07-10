@@ -24,6 +24,18 @@ public class Program
         builder.Services.AddScoped<IAddressService, AddressService>();
         builder.Services.AddScoped<ITripService, TripService>();
 
+        var allowedOrigins = builder.Configuration.GetSection("AllowedOrigins").Get<string[]>();
+
+        builder.Services.AddCors(options =>
+        {
+            options.AddPolicy("CorsPolicy", policy =>
+            {
+                policy.WithOrigins(allowedOrigins!)
+                    .AllowAnyMethod()
+                    .AllowAnyHeader();
+            });
+        });
+
         var app = builder.Build();
 
         using (var scope = app.Services.CreateScope())
@@ -40,6 +52,8 @@ public class Program
         }
 
         app.UseHttpsRedirection();
+
+        app.UseCors("CorsPolicy");
 
         app.UseAuthorization();
 

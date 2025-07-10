@@ -1,4 +1,4 @@
-namespace CRR.API.DTOs;
+namespace CRR.Shared.DTOs;
 
 public class DistanceDto
 {
