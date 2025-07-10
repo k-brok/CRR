@@ -43,4 +43,22 @@ public static class TripExtensions
             }
         };
     }
+    public static Trip ToEntity(this TripDto dto)
+    {
+        return new Trip
+        {
+            FromId = dto.FromId,
+            ToId = dto.ToId,
+            Departure = dto.Departure,
+            Arrival = dto.Arrival,
+            Remark = dto.Remark,
+            DepartureMileage = dto.DepartureMileage,
+            ArrivalMileage = dto.ArrivalMileage,
+            Distance = new Distance
+            {
+                Business = dto.Distance.Business,
+                Private = dto.Distance.Private
+            }
+        };
+    }
 }
