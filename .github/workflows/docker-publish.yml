@@ -23,7 +23,7 @@ jobs:
         run: dotnet publish CRR.API/CRR.API.csproj -c Release -o ./publish
 
       - name: Build Docker image
-        run: docker build -t chunkk/crr-api:latest CRR.API/
+        run: docker build -t chunkk/crr-api:latest -f CRR.API/Dockerfile .
 
       - name: Log in to Docker Hub
         env:
