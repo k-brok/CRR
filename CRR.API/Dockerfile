@@ -1,23 +1,31 @@
-FROM mcr.microsoft.com/dotnet/sdk:8.0 AS build
-WORKDIR /src
+# See https://aka.ms/customizecontainer to learn how to customize your debug container and how Visual Studio uses this Dockerfile to build your images for faster debugging.
 
-# Kopieer alle csproj bestanden (zodat dotnet restore alle dependencies ziet)
-COPY CRR.API/*.csproj CRR.API/
-COPY CRR.Shared/*.csproj CRR.Shared/
-
-# Restore dependencies
-WORKDIR /src/CRR.API
-RUN dotnet restore
-
-# Kopieer de rest van de bestanden
-COPY . .
-
-# Publish app
-RUN dotnet publish -c Release -o /app/publish
-
-FROM mcr.microsoft.com/dotnet/aspnet:8.0 AS runtime
+# This stage is used when running from VS in fast mode (Default for Debug configuration)
+FROM mcr.microsoft.com/dotnet/aspnet:8.0 AS base
+USER $APP_UID
 WORKDIR /app
+EXPOSE 8080
+EXPOSE 8081
 
-COPY --from=build /app/publish .
 
+# This stage is used to build the service project
+FROM mcr.microsoft.com/dotnet/sdk:8.0 AS build
+ARG BUILD_CONFIGURATION=Release
+WORKDIR /src
+COPY ["CRR.API/CRR.API.csproj", "CRR.API/"]
+COPY ["CRR.Shared/CRR.Shared.csproj", "CRR.Shared/"]
+RUN dotnet restore "./CRR.API/CRR.API.csproj"
+COPY . .
+WORKDIR "/src/CRR.API"
+RUN dotnet build "./CRR.API.csproj" -c $BUILD_CONFIGURATION -o /app/build
+
+# This stage is used to publish the service project to be copied to the final stage
+FROM build AS publish
+ARG BUILD_CONFIGURATION=Release
+RUN dotnet publish "./CRR.API.csproj" -c $BUILD_CONFIGURATION -o /app/publish /p:UseAppHost=false
+
+# This stage is used in production or when running from VS in regular mode (Default when not using the Debug configuration)
+FROM base AS final
+WORKDIR /app
+COPY --from=publish /app/publish .
 ENTRYPOINT ["dotnet", "CRR.API.dll"]
