@@ -20,7 +20,7 @@ jobs:
           dotnet-version: '8.0.x'
 
       - name: Publish .NET app
-        run: dotnet publish -c Release -o ./publish
+        run: dotnet publish CRR.API/CRR.API.csproj -c Release -o ./publish
 
       - name: Build Docker image
         run: docker build -t chunkk/crr-api:latest CRR.API/
