@@ -17,8 +17,6 @@
 @code{
     async Task OpenNewTrip()
     {
-         await DialogService.OpenAsync<CRR.APP.Dialog.AddressDialog>($"Address {AddressData.Name}",
-               new Dictionary<string, object>() { { "AddressData", AddressData } },
-               new DialogOptions() { Width = "700px", Height = "520px" });
+         
     }
 }
