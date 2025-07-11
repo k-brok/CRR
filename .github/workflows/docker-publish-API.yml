@@ -1,0 +1,41 @@
+name: Build and Push API to Docker Hub
+
+on:
+  push:
+    branches:
+      - master
+  workflow_dispatch:
+
+jobs:
+  build-and-push:
+    runs-on: ubuntu-latest
+
+    steps:
+      - name: Checkout repo
+        uses: actions/checkout@v3
+
+      - name: Setup .NET SDK
+        uses: actions/setup-dotnet@v3
+        with:
+          dotnet-version: '8.0.x'
+
+      - name: Publish .NET app
+        run: dotnet publish CRR.API/CRR.API.csproj -c Release -o ./publish
+
+      - name: Build Docker image
+        run: docker build -t chunkk/crr-api:latest -f CRR.API/Dockerfile .
+
+      - name: Log in to Docker Hub
+        env:
+          DOCKER_USERNAME: ${{ secrets.DOCKER_USERNAME }}
+          DOCKER_PASSWORD: ${{ secrets.DOCKER_PASSWORD }}
+        run: |
+          echo "$DOCKER_PASSWORD" | docker login -u "$DOCKER_USERNAME" --password-stdin
+
+      - name: Push Docker image
+        run: docker push chunkk/crr-api:latest
+      
+      - name: "webhook"
+        uses: joelwmale/webhook-action@2.1.0
+        with:
+            url: https://portainer.familiebrok.nl/api/stacks/webhooks/cd5de04c-dc3f-42e9-ae35-cf750abd9770

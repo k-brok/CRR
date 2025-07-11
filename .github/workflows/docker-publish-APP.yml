@@ -1,4 +1,4 @@
-name: Build and Push to Docker Hub
+name: Build and Push APP to Docker Hub
 
 on:
   push:
@@ -20,10 +20,10 @@ jobs:
           dotnet-version: '8.0.x'
 
       - name: Publish .NET app
-        run: dotnet publish CRR.API/CRR.API.csproj -c Release -o ./publish
+        run: dotnet publish CRR.APP/CRR.APP.csproj -c Release -o ./publish
 
       - name: Build Docker image
-        run: docker build -t chunkk/crr-api:latest -f CRR.API/Dockerfile .
+        run: docker build -t chunkk/crr-app:latest -f CRR.APP/Dockerfile .
 
       - name: Log in to Docker Hub
         env:
@@ -33,9 +33,4 @@ jobs:
           echo "$DOCKER_PASSWORD" | docker login -u "$DOCKER_USERNAME" --password-stdin
 
       - name: Push Docker image
-        run: docker push chunkk/crr-api:latest
-      
-      - name: "webhook"
-        uses: joelwmale/webhook-action@2.1.0
-        with:
-            url: https://portainer.familiebrok.nl/api/stacks/webhooks/cd5de04c-dc3f-42e9-ae35-cf750abd9770
+        run: docker push chunkk/crr-app:latest
