@@ -6,7 +6,7 @@ public class Trip{
 	public Guid FromId {get; set;}
 	public Address To {get; set;}
 	public Guid ToId {get; set;}
-	public string Remark {get; set;}
+	public string Remark {get; set;} = string.Empty;
 	public int DepartureMileage {get; set;}
 	public int ArrivalMileage {get; set;}
 	public DateTime Departure {get; set;}
