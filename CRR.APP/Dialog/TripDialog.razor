@@ -1,3 +1,167 @@
+<RadzenStack Gap="10px">    
+    <RadzenFieldset AllowCollapse="true" ExpandTitle="Expand Departure." CollapseTitle="Collapse Departure."
+                ExpandAriaLabel="Expand the list of Departure." CollapseAriaLabel="Collapse the list of Departure." Collapsed=true >
+        <HeaderTemplate>
+            <RadzenStack Orientation="Orientation.Horizontal" Gap="0.25rem">
+                <RadzenIcon Icon="account_box" /><b>Vertrek</b>
+            </RadzenStack>
+        </HeaderTemplate>
+        <ChildContent>
+            <RadzenStack>
+                <RadzenFormField Text="Vertrek address"  Variant=Variant.Flat>
+                    <RadzenDropDown Value=@NewTrip.From TValue="Address" Change=@(args => UpdateAddressFrom((Address)args)) TextProperty="@nameof(Address.Name)" Data=@AllAddresses Name="DropDownFrom" />
+                </RadzenFormField>
+                <RadzenFormField Text="Kilometerstand vertrek" Variant=Variant.Flat>
+                    <RadzenNumeric Value=@NewTrip.DepartureMileage TValue="int" Change=@(args => UpdateDepartureMileage(args)) />
+                </RadzenFormField>
+                <RadzenFormField Text="Vertrek tijd" Variant=Variant.Flat>
+                    <RadzenDatePicker Value=@NewTrip.Departure TValue="DateTime" Change="@(args => UpdateDepartureTime((DateTime)args))" ShowTime="true" ShowSeconds="true" HoursStep="1" MinutesStep="5"DateFormat="dd-MM-yyyy HH:mm" Name="Vertrektijd" />
+                </RadzenFormField>
+            </RadzenStack>
+        </ChildContent>
+        <SummaryTemplate>
+            <radzenstack>
+                <p>@FromTitle</p>
+                <RadzenFormField Text="Vertrek tijd" Variant=Variant.Flat>
+                    <RadzenDatePicker @bind-Value=@NewTrip.Departure ShowTime="true" ShowSeconds="true" HoursStep="1" MinutesStep="5"DateFormat="dd-MM-yyyy HH:mm" Name="Vertrektijd" />
+                </RadzenFormField>
+            </radzenstack>
+        </SummaryTemplate>
+    </RadzenFieldset>
+    <RadzenFieldset AllowCollapse="false">
+        <HeaderTemplate>
+            <RadzenStack Orientation="Orientation.Horizontal" Gap="0.25rem">
+                <RadzenIcon Icon="account_box" /><b>Aankomst</b>
+            </RadzenStack>
+        </HeaderTemplate>
+        <ChildContent>
+            <RadzenStack>
+                <RadzenFormField Text="Aankomst address" Variant=Variant.Flat>
+                    <RadzenDropDown Value=@NewTrip.To TValue="Address" Change=@(args => UpdateAddressTo((Address)args)) TextProperty="@nameof(Address.Name)" Data=@AllAddresses Name="DropDownTo" />
+                </RadzenFormField>
+                <RadzenFormField Text="Kilometerstand aankomst" Variant=Variant.Flat>
+                    <RadzenNumeric Value=@NewTrip.ArrivalMileage TValue="int" Change=@(args => UpdateArrivalMileage(args)) />
+                </RadzenFormField>
+                <RadzenFormField Text="Aankomst tijd" Variant=Variant.Flat>
+                    <RadzenDatePicker @bind-Value=@NewTrip.Arrival ShowTime="true" ShowSeconds="true" HoursStep="1" MinutesStep="5"DateFormat="dd-MM-yyyy HH:mm" Name="aankomststijd" />
+                </RadzenFormField>
+            </RadzenStack>
+        </ChildContent>
+    </RadzenFieldset>
+    <RadzenFieldset AllowCollapse="false">
+        <HeaderTemplate>
+            <RadzenStack Orientation="Orientation.Horizontal" Gap="0.25rem">
+                <RadzenIcon Icon="account_box" /><b>Instellingen</b>
+            </RadzenStack>
+        </HeaderTemplate>
+        <ChildContent>
+            <RadzenStack>
+                <RadzenFormField Text="Opmerking" Variant=Variant.Flat>
+                    <RadzenTextArea  @bind-Value=NewTrip.Remark />
+                </RadzenFormField>
+                <RadzenRow>
+                    <RadzenColumn Size="8">
+                        <RadzenFormField Text="Prive Kilometers" Variant=Variant.Flat>
+                            <RadzenNumeric Value=@PrivateMileages Disabled=@FullPrivate TValue="int" Style="width: 100%;" Change=@(args => UpdateprivateMileage(args)) />
+                        </RadzenFormField>
+                    </RadzenColumn>
+                    <RadzenColumn Size="4">
+                        <RadzenToggleButton @bind-Value=@FullPrivate ButtonStyle="ButtonStyle.Light" ToggleButtonStyle="ButtonStyle.Success" Text="Volledig prive" />
+                    </RadzenColumn>
+                </RadzenRow>
+            </RadzenStack>
+        </ChildContent>
+    </RadzenFieldset>
+    <RadzenButton Click=@(args => AddTrip()) Text="Toevoegen" Style="width: 100%;" ButtonStyle="ButtonStyle.Primary" />
+</RadzenStack>
 @code{
-    
+    private string FromTitle{get; set;}
+    private string ToTitle{get; set;}
+    private bool FullPrivate{get; set;} = false;
+    private int PrivateMileages{get; set;}
+    private Trip NewTrip {get; set;} = new Trip();
+    private List<Address> AllAddresses {get; set;} = new List<Address>();
+    protected override async Task OnInitializedAsync(){
+        Trip PreviousTrip = await _TripService.GetLatestAsync();
+        AllAddresses = await _AddressService.GetAllAsync();
+
+        if(PreviousTrip != null){
+            NewTrip.DepartureMileage = PreviousTrip.ArrivalMileage;
+            NewTrip.From = await _AddressService.GetAsync(PreviousTrip.ToId);
+            NewTrip.FromId = PreviousTrip.ToId;
+        }
+        await UpdateTitles();
+
+        await base.OnInitializedAsync();
+    }
+    private async Task UpdateTitles(){
+        FromTitle = "";
+        ToTitle = "";
+        if(NewTrip.From != null){
+            FromTitle += NewTrip.From.Name;
+            if(NewTrip.DepartureMileage != null)
+                FromTitle += "  (" + NewTrip.DepartureMileage.ToString() + " km)";
+        }
+        if(NewTrip.To != null){
+            ToTitle += NewTrip.To.Name;
+            if(NewTrip.ArrivalMileage != null)
+                ToTitle += "  (" + NewTrip.ArrivalMileage.ToString() + " km)";
+        }
+        await Task.Delay(50);
+        StateHasChanged();
+    }
+
+    private async Task UpdateDepartureTime(DateTime newValue)
+    {
+        if (NewTrip.Arrival == null)
+        {
+            NewTrip.Arrival = newValue;
+        }
+        else
+        {
+            TimeSpan difference = NewTrip.Arrival - NewTrip.Departure;
+            NewTrip.Arrival = newValue + difference;
+        }
+
+        NewTrip.Departure = newValue;
+    }
+
+
+    private async Task UpdateDepartureMileage(int NewValue){
+        NewTrip.DepartureMileage = NewValue;
+        await UpdateTitles();
+    }
+
+    private async Task UpdateArrivalMileage(int NewValue){
+        NewTrip.ArrivalMileage = NewValue;
+        await UpdateTitles();
+    }
+    private async Task UpdateprivateMileage(int NewValue){
+        //NewTrip.ArrivalMileage = NewValue;
+        await UpdateTitles();
+    }
+    private async Task UpdateAddressFrom(Address NewValue){
+        NewTrip.From = NewValue;
+        await UpdateTitles();
+    }
+    private async Task UpdateAddressTo(Address NewValue){
+        NewTrip.To = NewValue;
+
+        if(NewTrip.ArrivalMileage == 0 && NewTrip.DepartureMileage != 0){
+            NewTrip.ArrivalMileage = NewTrip.DepartureMileage + 9;
+        }
+
+        await UpdateTitles();
+    }
+    private async Task AddTrip(){
+        NewTrip.FromId = NewTrip.From.Id;
+        NewTrip.ToId = NewTrip.To.Id;
+
+        if(FullPrivate){
+            NewTrip.PrivateMileage = NewTrip.ArrivalMileage - NewTrip.DepartureMileage;
+        } else{
+            NewTrip.PrivateMileage = PrivateMileages;
+        }
+        _TripService.CreateAsync(NewTrip);
+    }
 }

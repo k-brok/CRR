@@ -8,7 +8,7 @@ namespace CRR.APP.Services;
 public class TripService
 {
     private readonly HttpClient _httpClient;
-    private const string Endpoint = "api/tripes";
+    private const string Endpoint = "api/trips";
 
     public TripService(HttpClient httpClient)
     {
@@ -28,5 +28,9 @@ public class TripService
         return response.IsSuccessStatusCode;
     }
 
-    // etc...
+    public async Task<Trip> GetLatestAsync()
+    {
+        var response = await _httpClient.GetFromJsonAsync<TripDto>(Endpoint + "/latest");
+        return response.ToEntity();
+    }
 }
