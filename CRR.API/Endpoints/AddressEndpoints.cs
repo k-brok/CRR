@@ -23,7 +23,7 @@ namespace CRR.API.Endpoints
             group.MapGet("/{id:guid}", async (Guid id, IAddressService service) =>
             {
                 var address = await service.GetByIdAsync(id);
-                return address is not null ? Results.Ok(address) : Results.NotFound();
+                return address is not null ? Results.Ok(address.ToDto()) : Results.NotFound();
             });
 
             group.MapPost("/", async (CreateAddressDto address, IAddressService service) =>

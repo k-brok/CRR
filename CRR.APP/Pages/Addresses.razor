@@ -2,34 +2,36 @@
 
 <PageTitle>Addresses</PageTitle>
 
-<RadzenDataGrid Data="@addresses"
-                AllowFiltering="false" AllowSorting="false" PageSize="5"
-                AllowPaging="true" ShowPagingSummary="true"> <!-- Responsive mode uitzetten -->
-    <Columns>
-        <RadzenDataGridColumn Property="@nameof(Address.Name)" Title="Naam" Width="120px" />
-        <RadzenDataGridColumn Title="Straat" Width="auto"
-                              >
-            <Template Context="address">
-                @address.Street @address.Number
-            </Template>
-        </RadzenDataGridColumn>
-        <RadzenDataGridColumn Property="@nameof(Address.ZipCode)" Title="Postcode" Width="100px"
-                               />
-        <RadzenDataGridColumn Title="Acties" Width="60px">
-            <Template Context="address">
-                <RadzenButton Icon="edit" ButtonStyle="ButtonStyle.Primary"
-                              Size="ButtonSize.Small" Click="@(() => OpenAddress(address))" />
-            </Template>
-        </RadzenDataGridColumn>
-    </Columns>
-</RadzenDataGrid>
+<RadzenStack Orientation=Orientation.Horizontal JustifyContent=JustifyContent.SpaceBetween>
+    <RadzenText>Addresses</RadzenText>
+    <RadzenButton Click=@(() => OpenAddress(new Address())) Icon="add_circle" ButtonStyle="ButtonStyle.Primary" />
+</RadzenStack>
 
+<RadzenDataList class="rz-p-0 rz-m-0" AllowVirtualization=false
+                    Data="@addresses" TItem="Address">
+        <Template Context="address">
+                <RadzenRow AlignItems=AlignItems.Center Gap="0">
+                    <RadzenColumn Size="6" SizeLG="3" class="rz-p-1 product-title">
+
+                        <RadzenText TextStyle="TextStyle.H6" TagName="TagName.H5" class="rz-color-on-secondary-lighter">@(address.Name)</RadzenText>
+                    </RadzenColumn>
+                    <RadzenColumn Size="6" SizeLG="7" class="rz-p-1">
+                        <RadzenText TextStyle="TextStyle.H6" TagName="TagName.H5" class="rz-mb-0">@(address.Street) @(address.Number)</RadzenText>
+                        <RadzenText TextStyle="TextStyle.Body2">@(address.ZipCode)</RadzenText>
+                    </RadzenColumn>
+                    <RadzenColumn Size="12" SizeLG="2" class="rz-p-1">
+                        <RadzenButton Text="Details" Click=@(()=>OpenAddress(address)) Style="width: 100%" />
+                    </RadzenColumn>
+                </RadzenRow>
+        </template>
+</RadzenDataList>
 
 @code {
     private List<Address> addresses {get; set;} = new List<Address>();
 
     protected override async Task OnInitializedAsync()
     {
+        DialogService.OnClose += Close;
         addresses = await _AddressService.GetAllAsync();
     }
 
@@ -38,6 +40,13 @@
          await DialogService.OpenAsync<CRR.APP.Dialog.AddressDialog>($"Address {AddressData.Name}",
                new Dictionary<string, object>() { { "AddressData", AddressData } },
                new DialogOptions() { Width = "700px", Height = "520px" });
+    }
+
+    void Close(dynamic result){
+        if(result != null && result is Address){
+            addresses.Add(result);
+            StateHasChanged();
+        }
     }
 
 }

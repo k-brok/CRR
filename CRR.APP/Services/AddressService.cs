@@ -15,6 +15,11 @@ public class AddressService
         _httpClient = httpClient;
     }
 
+    public async Task<Address> GetAsync(Guid AddressId)
+    {
+        AddressDto AddressDtos = await _httpClient.GetFromJsonAsync<AddressDto>(Endpoint + "/" + AddressId);
+        return AddressDtos.ToEntity();
+    }
     public async Task<List<Address>> GetAllAsync()
     {
         List<AddressDto> AddressDtos = await _httpClient.GetFromJsonAsync<List<AddressDto>>(Endpoint);
@@ -28,5 +33,11 @@ public class AddressService
         return response.IsSuccessStatusCode;
     }
 
-    // etc...
+    public async Task<bool> SaveAsync(Address address)
+    {
+        var response = await _httpClient.PutAsJsonAsync(Endpoint + "/" + address.Id, address.ToDto());
+        return response.IsSuccessStatusCode;
+    }
+
+    
 }

@@ -42,6 +42,7 @@ public static class AddressExtensions
 
         return new Address
         {
+            Id = dto.Id,
             Name = dto.Name,
             Street = dto.Street,
             Number = dto.Number,

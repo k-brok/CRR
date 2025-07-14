@@ -1,7 +1,62 @@
 <RadzenStack>
-    @AddressData.Name
+    @if(IsEdit){
+        <RadzenRow Gap="1rem">
+            <RadzenRow Gap="0">
+                <RadzenColumn Size="12">
+                    <RadzenFormField Text="Naam" Style="width: 100%;">
+                        <RadzenTextBox @bind-Value=@AddressData.Name/>
+                    </RadzenFormField>
+                </RadzenColumn>
+            </RadzenRow>
+            <RadzenRow Gap="0">
+                <RadzenColumn Size="8">
+                    <RadzenFormField Text="Straat" Style="width: 100%;">
+                        <RadzenTextBox @bind-Value=@AddressData.Street/>
+                    </RadzenFormField>
+                </RadzenColumn>
+                <RadzenColumn Size="4">
+                    <RadzenFormField Text="Nummer" Style="width: 100%;">
+                        <RadzenTextBox @bind-Value=@AddressData.Number/>
+                    </RadzenFormField>
+                </RadzenColumn>
+            </RadzenRow>
+            <RadzenRow Gap="0">
+                <RadzenColumn Size="12">
+                    <RadzenFormField Text="Postcode" Style="width: 100%;">
+                        <RadzenTextBox @bind-Value=@AddressData.ZipCode/>
+                    </RadzenFormField>
+                </RadzenColumn>
+            </RadzenRow>
+        </RadzenRow>
+    } else {
+        @AddressData.Name
+    }
+    @if(IsEdit){
+        <RadzenButton Text="Save" Click="@(() => SaveAddress(AddressData))" />
+    } else {
+        <RadzenButton Text="Edit" Click="@(() => IsEdit = true)" />
+    }
 </RadzenStack>
 
 @code{
-    [Parameter] public Address AddressData { get; set; }
+    [Parameter] public Address AddressData { get; set; } = new Address();
+    private bool IsEdit {get; set;} = false;
+    protected override async Task OnInitializedAsync(){
+        if(AddressData.Id == Guid.Empty)
+            IsEdit = true;
+
+        await base.OnInitializedAsync();
+    }
+    private async Task SaveAddress(Address address){
+        bool Succeeded = false;
+        if(address.Id == Guid.Empty){
+            Succeeded = await _AddressService.CreateAsync(address);
+            if(Succeeded)
+                DialogService.Close(address);
+        } else {
+            Succeeded = await _AddressService.SaveAsync(address);
+            if(Succeeded)
+                DialogService.Close();
+        }
+    }
 }
