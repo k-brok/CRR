@@ -58,7 +58,7 @@ namespace CRR.API.Services
             existing.ArrivalMileage = updated.ArrivalMileage;
             existing.Departure = updated.Departure;
             existing.Arrival = updated.Arrival;
-            existing.Distance = updated.Distance;
+            existing.PrivateMileage = updated.PrivateMileage;
 
             await _context.SaveChangesAsync();
             return existing;

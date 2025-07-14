@@ -11,5 +11,5 @@ public class Trip{
 	public int ArrivalMileage {get; set;}
 	public DateTime Departure {get; set;}
 	public DateTime Arrival {get; set;}
-	public Distance Distance {get; set;}
+	public int PrivateMileage {get; set;}
 }

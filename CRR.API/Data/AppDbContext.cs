@@ -17,9 +17,6 @@ namespace CRR.API.Data
 		protected override void OnModelCreating(ModelBuilder modelBuilder)
 		{
 			modelBuilder.Entity<Trip>()
-				.OwnsOne(t => t.Distance);
-
-			modelBuilder.Entity<Trip>()
 				.HasOne(e => e.From)
 				.WithMany()
 				.HasForeignKey(e => e.FromId)

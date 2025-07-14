@@ -17,11 +17,7 @@ public static class TripExtensions
             Remark = trip.Remark,
             DepartureMileage = trip.DepartureMileage,
             ArrivalMileage = trip.ArrivalMileage,
-            Distance = new DistanceDto
-            {
-                Business = trip.Distance.Business,
-                Private = trip.Distance.Private
-            }
+            PrivateMileage = trip.PrivateMileage
         };
     }
 
@@ -36,11 +32,7 @@ public static class TripExtensions
             Remark = dto.Remark,
             DepartureMileage = dto.DepartureMileage,
             ArrivalMileage = dto.ArrivalMileage,
-            Distance = new Distance
-            {
-                Business = dto.Distance.Business,
-                Private = dto.Distance.Private
-            }
+            PrivateMileage = dto.PrivateMileage
         };
     }
     public static Trip ToEntity(this TripDto dto)
@@ -54,11 +46,7 @@ public static class TripExtensions
             Remark = dto.Remark,
             DepartureMileage = dto.DepartureMileage,
             ArrivalMileage = dto.ArrivalMileage,
-            Distance = new Distance
-            {
-                Business = dto.Distance.Business,
-                Private = dto.Distance.Private
-            }
+            PrivateMileage = dto.PrivateMileage
         };
     }
 }
