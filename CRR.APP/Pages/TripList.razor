@@ -1,0 +1,49 @@
+@page "/TripList"
+
+<PageTitle>Ritten overzicht</PageTitle>
+
+<RadzenDataGrid TItem="Trip" Data=TripListData>
+    <Columns>
+        <RadzenDataGridColumn Property="@nameof(Trip.Departure)" Title="Datum" />
+        <RadzenDataGridColumn Title="Van">
+            <Columns>
+                <RadzenDataGridColumn Title="Adres">
+                    <Template Context="trip">
+                        @AllAddresses.FirstOrDefault(A=> A.Id == trip.FromId).Name
+                    </Template>
+                </RadzenDataGridColumn>
+                <RadzenDataGridColumn Property="@nameof(Trip.DepartureMileage)" Title="Kilometerstand" />
+            </Columns>
+        </RadzenDataGridColumn>
+        <RadzenDataGridColumn Title="Naar">
+            <Columns>
+                <RadzenDataGridColumn Title="naar">
+                    <Template Context="trip">
+                        @AllAddresses.FirstOrDefault(A=> A.Id == trip.ToId).Name
+                    </Template>
+                </RadzenDataGridColumn>
+                <RadzenDataGridColumn Property="@nameof(Trip.ArrivalMileage)" Title="Kilometerstand" />
+            </Columns>
+        </RadzenDataGridColumn>
+        <RadzenDataGridColumn Title="Kilometers">
+            <Columns>
+                <RadzenDataGridColumn Title="Zakelijk">
+                    <Template Context="trip">
+                        @(trip.ArrivalMileage - trip.DepartureMileage - trip.PrivateMileage)
+                    </Template>
+                </RadzenDataGridColumn>
+                <RadzenDataGridColumn Property="@nameof(Trip.PrivateMileage)" Title="privé" />
+            </Columns>
+        </RadzenDataGridColumn>
+    </Columns>
+</RadzenDataGrid>
+
+@code{
+    List<Trip> TripListData {get; set;}
+    List<Address> AllAddresses {get; set;}
+    protected async override Task OnInitializedAsync(){
+        TripListData = await _TripService.GetAllAsync();
+        AllAddresses = await _AddressService.GetAllAsync();
+        await base.OnInitializedAsync();
+    }
+}

@@ -15,7 +15,8 @@
     <RadzenSidebar Responsive="false" @bind-Expanded="@sidebarExpanded" style="position: absolute">
         <RadzenPanelMenu>
             <RadzenPanelMenuItem Text="Home" Icon="home" Path="/" Click=@(() => sidebarExpanded = false) />
-            <RadzenPanelMenuItem Text="Addresses" Icon="account_box" Path="addresses" Click=@(() => sidebarExpanded = false) />
+            <RadzenPanelMenuItem Text="Adressen" Icon="account_box" Path="addresses" Click=@(() => sidebarExpanded = false) />
+            <RadzenPanelMenuItem Text="Ritten lijst" Icon="account_box" Path="TripList" Click=@(() => sidebarExpanded = false) />
         </RadzenPanelMenu>
     </RadzenSidebar>
     <RadzenBody>
