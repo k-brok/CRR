@@ -2,23 +2,24 @@
 @inject DialogService DialogService
  
 <RadzenStack>
-    @if(ShowExisting){
-        <RadzenRow>
-            <RadzenColumn Size="8">
-                <RadzenDropDown @bind-Value=@PickedAddress Data=@ExistingAddresses TextProperty="@nameof(Address.Name)"/>
-            </RadzenColumn>
-            <RadzenColumn Size="4">
-                <RadzenButton Click=UseExisiting Text="Use" ButtonStyle="ButtonStyle.Primary" />
-            </RadzenColumn>
-        </RadzenRow>
-    }
     @if(IsEdit){
         <RadzenRow Gap="1rem">
             <RadzenRow Gap="0">
                 <RadzenColumn Size="12">
-                    <RadzenFormField Text="Naam" Style="width: 100%;">
-                        <RadzenTextBox @bind-Value=@AddressData.Name/>
-                    </RadzenFormField>
+                    @if(ShowExisting){
+                        <RadzenFormField Text="Naam" Style="width: 100%;">
+                            <RadzenDropDown TValue=Address Value=@AddressData Data=@ExistingAddresses Style="width: 100%; max-width: 400px;" Change="@(args => CheckPickedValues((Address)args))" TextProperty="@nameof(Address.Name)" AllowClear=true>
+                                <ValueTemplate>
+                                    <RadzenTextBox @bind-Value=@AddressData.Name Style="width:120%; height:120%; margin:-15px"/>
+                                </ValueTemplate>
+                            </RadzenDropDown>
+                        </RadzenFormField>
+                    }
+                    else{
+                        <RadzenFormField Text="Naam" Style="width: 100%;">
+                            <RadzenTextBox @bind-Value=@AddressData.Name/>
+                        </RadzenFormField>
+                    }
                 </RadzenColumn>
             </RadzenRow>
             <RadzenRow Gap="0">
@@ -54,16 +55,17 @@
 @code{
     private List<Address> ExistingAddresses {get; set;} = new List<Address>();
     [Parameter] public bool ShowExisting {get; set;} = false;
-    public Address PickedAddress { get; set; }
+    public Address InitialValues { get; set;}
     [Parameter] public Address AddressData { get; set; } = new Address();
     private bool IsEdit {get; set;} = false;
     protected override async Task OnInitializedAsync(){
+        InitialValues = AddressData;
         if(AddressData.Id == Guid.Empty)
             IsEdit = true;
 
         if(ShowExisting){
             ExistingAddresses = await _AddressService.GetAllAsync();
-            PickedAddress = ExistingAddresses.First();
+            ExistingAddresses = ExistingAddresses.OrderBy(A=>A.Name).ToList();
         }
         await base.OnInitializedAsync();
     }
@@ -88,7 +90,12 @@
                 DialogService.Close(Existingaddress);
         }
     }
-    private async Task UseExisiting(){
-        DialogService.Close(PickedAddress);
+    void CheckPickedValues(Address PickedAddress){
+        if(PickedAddress != null){
+            AddressData = PickedAddress;
+        }
+        else{
+            AddressData = InitialValues;
+        }
     }
 }
