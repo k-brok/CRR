@@ -306,6 +306,9 @@
               new Dictionary<string, object>() { { "AddressData", AddressData }, { "ShowExisting", true } },
               new DialogOptions() { Width = "700px", Height = "520px" });
 
+        if(AddressData == null)
+            return;
+
         if(from)
             result.FromAddress = AddressData;
         else
