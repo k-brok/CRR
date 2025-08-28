@@ -2,6 +2,16 @@
 @inject DialogService DialogService
  
 <RadzenStack>
+    @if(ShowExisting){
+        <RadzenRow>
+            <RadzenColumn Size="8">
+                <RadzenDropDown @bind-Value=@PickedAddress Data=@ExistingAddresses TextProperty="@nameof(Address.Name)"/>
+            </RadzenColumn>
+            <RadzenColumn Size="4">
+                <RadzenButton Click=UseExisiting Text="Use" ButtonStyle="ButtonStyle.Primary" />
+            </RadzenColumn>
+        </RadzenRow>
+    }
     @if(IsEdit){
         <RadzenRow Gap="1rem">
             <RadzenRow Gap="0">
@@ -42,12 +52,19 @@
 </RadzenStack>
 
 @code{
+    private List<Address> ExistingAddresses {get; set;} = new List<Address>();
+    [Parameter] public bool ShowExisting {get; set;} = false;
+    public Address PickedAddress { get; set; }
     [Parameter] public Address AddressData { get; set; } = new Address();
     private bool IsEdit {get; set;} = false;
     protected override async Task OnInitializedAsync(){
         if(AddressData.Id == Guid.Empty)
             IsEdit = true;
 
+        if(ShowExisting){
+            ExistingAddresses = await _AddressService.GetAllAsync();
+            PickedAddress = ExistingAddresses.First();
+        }
         await base.OnInitializedAsync();
     }
     private async Task SaveAddress(Address address){
@@ -70,5 +87,8 @@
             if(Succeeded)
                 DialogService.Close(Existingaddress);
         }
+    }
+    private async Task UseExisiting(){
+        DialogService.Close(PickedAddress);
     }
 }
