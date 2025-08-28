@@ -1,0 +1,55 @@
+@page "/DefaultTripList"
+@inject AddressService _AddressService
+@inject DefaultTripService _DefaultTripService
+@inject DialogService DialogService
+
+<PageTitle>Ritten overzicht</PageTitle>
+<RadzenButton Text="Analyseer standaard ritten" Click="OpenAnalyzer" />
+<RadzenDataGrid TItem="DefaultTrip" Data=DefaultTripListData>
+    <Columns>
+        <RadzenDataGridColumn Title="Adres 1">
+            <Template Context="defaultTrip">
+                @AllAddresses.FirstOrDefault(A=> A.Id == defaultTrip.FromId).Name
+            </Template>
+        </RadzenDataGridColumn>
+        <RadzenDataGridColumn Title="Adres 2">
+            <Template Context="defaultTrip">
+                @AllAddresses.FirstOrDefault(A=> A.Id == defaultTrip.ToId).Name
+            </Template>
+        </RadzenDataGridColumn>
+        <RadzenDataGridColumn Title="Type">
+            <Template Context="defaultTrip">
+                @if(defaultTrip.Type == TripType.Private){
+                    <p>Privé</p>
+                } else{
+                    <p>Zakelijk</p>
+                }
+            </Template>
+        </RadzenDataGridColumn>
+        <RadzenDataGridColumn Title="Kilometers">
+            <Columns>
+                <RadzenDataGridColumn Property="@nameof(DefaultTrip.DefaultMileage)" Title="Totaal" />
+                <RadzenDataGridColumn Property="@nameof(DefaultTrip.PrivateMileage)" Title="privé" />
+            </Columns>
+        </RadzenDataGridColumn>
+    </Columns>
+</RadzenDataGrid>
+
+@code{
+    List<DefaultTrip> DefaultTripListData {get; set;}
+    List<Address> AllAddresses {get; set;}
+    protected async override Task OnInitializedAsync(){
+        DefaultTripListData = await _DefaultTripService.GetAllAsync();
+        AllAddresses = await _AddressService.GetAllAsync();
+        await base.OnInitializedAsync();
+    }
+    private async Task OpenAnalyzer()
+    {
+         await DialogService.OpenAsync<CRR.APP.Dialog.AnalyzeDefaultTripDialog>($"Standaard Rit analyzer",new Dictionary<string, object>(),new DialogOptions());
+    }
+
+    async Task Close(dynamic result){
+        DefaultTripListData = await _DefaultTripService.GetAllAsync();
+        StateHasChanged();
+    }
+}

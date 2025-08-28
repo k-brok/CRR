@@ -16,6 +16,9 @@ public class Program
         builder.Services.AddScoped(sp => new HttpClient { BaseAddress = new Uri(apiBaseUrl) });
 		
         builder.Services.AddScoped<AddressService>();
+        builder.Services.AddScoped<TripService>();
+        builder.Services.AddScoped<CarService>();
+        builder.Services.AddScoped<DefaultTripService>();
 
 		builder.Services.AddRadzenComponents();
 

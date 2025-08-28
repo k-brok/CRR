@@ -20,10 +20,16 @@ namespace CRR.API.Endpoints
                 return Results.Ok(AddressDtos);
             });
 
+            group.MapGet("/zip", async (IAddressService service,string ZipCode, string Number) =>
+            {
+                var address = await service.GetByZIPAsync(ZipCode,Number);
+                return address is not null ? Results.Ok(address.ToDto()) : Results.NotFound();
+            });
+
             group.MapGet("/{id:guid}", async (Guid id, IAddressService service) =>
             {
                 var address = await service.GetByIdAsync(id);
-                return address is not null ? Results.Ok(address) : Results.NotFound();
+                return address is not null ? Results.Ok(address.ToDto()) : Results.NotFound();
             });
 
             group.MapPost("/", async (CreateAddressDto address, IAddressService service) =>

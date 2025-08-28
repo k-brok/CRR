@@ -23,6 +23,8 @@ public class Program
         
         builder.Services.AddScoped<IAddressService, AddressService>();
         builder.Services.AddScoped<ITripService, TripService>();
+        builder.Services.AddScoped<IDefaultTripService, DefaultTripService>();
+         builder.Services.AddScoped<ICarService, CarService>();
 
         var allowedOrigins = builder.Configuration.GetSection("AllowedOrigins").Get<string[]>();
 
@@ -59,6 +61,8 @@ public class Program
 
         app.MapAddressEndpoints();
         app.MapTripEndpoints();
+        app.MapDefaultTripEndpoints();
+        app.MapCarEndpoints();
 
         app.Run();
     }

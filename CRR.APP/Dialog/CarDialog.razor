@@ -1,0 +1,46 @@
+@inject CarService _CarService
+@inject DialogService DialogService
+ 
+<RadzenStack>
+    @if(IsEdit){
+        <RadzenRow Gap="1rem">
+            <RadzenRow Gap="0">
+                <RadzenColumn Size="12">
+                    <RadzenFormField Text="Naam" Style="width: 100%;">
+                        <RadzenTextBox @bind-Value=@CarData.PlateNumber/>
+                    </RadzenFormField>
+                </RadzenColumn>
+            </RadzenRow>
+        </RadzenRow>
+    } else {
+        @CarData.PlateNumber
+    }
+    @if(IsEdit){
+        <RadzenButton Text="Save" Click="@(() => SaveCar(CarData))" />
+    } else {
+        <RadzenButton Text="Edit" Click="@(() => IsEdit = true)" />
+    }
+</RadzenStack>
+
+@code{
+    [Parameter] public Car CarData { get; set; } = new Car();
+    private bool IsEdit {get; set;} = false;
+    protected override async Task OnInitializedAsync(){
+        if(CarData.Id == Guid.Empty)
+            IsEdit = true;
+
+        await base.OnInitializedAsync();
+    }
+    private async Task SaveCar(Car car){
+        bool Succeeded = false;
+        if(car.Id == Guid.Empty){
+            Succeeded = await _CarService.CreateAsync(car);
+            if(Succeeded)
+                DialogService.Close(car);
+        } else {
+            Succeeded = await _CarService.SaveAsync(car);
+            if(Succeeded)
+                DialogService.Close();
+        }
+    }
+}

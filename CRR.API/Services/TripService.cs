@@ -27,6 +27,7 @@ namespace CRR.API.Services
             return await _context.Trips
                 .Include(t => t.From)
                 .Include(t => t.To)
+                .Include(t => t.Car)
                 .FirstOrDefaultAsync(t => t.Id == id);
         }
 
@@ -35,6 +36,7 @@ namespace CRR.API.Services
             return await _context.Trips
                 .Include(t => t.From)
                 .Include(t => t.To)
+                .Include(t => t.Car)
                 .OrderByDescending(t => t.Arrival)
                 .FirstOrDefaultAsync();
         }
@@ -58,7 +60,7 @@ namespace CRR.API.Services
             existing.ArrivalMileage = updated.ArrivalMileage;
             existing.Departure = updated.Departure;
             existing.Arrival = updated.Arrival;
-            existing.Distance = updated.Distance;
+            existing.PrivateMileage = updated.PrivateMileage;
 
             await _context.SaveChangesAsync();
             return existing;
@@ -72,6 +74,65 @@ namespace CRR.API.Services
             _context.Trips.Remove(existing);
             await _context.SaveChangesAsync();
             return true;
+        }
+
+        public async Task<IEnumerable<Trip>> GetFilteredAsync(
+            Guid? fromId = null,
+            Guid? toId = null,
+            string? remark = null,
+            int? departureMileage = null,
+            int? arrivalMileage = null,
+            DateTime? departureFrom = null,
+            DateTime? departureTo = null,
+            DateTime? arrivalFrom = null,
+            DateTime? arrivalTo = null,
+            int? privateMileage = null,
+            Guid? carId = null,
+            string? carPlateNumber = null
+        )
+        {
+            IQueryable<Trip> query = _context.Trips
+                .Include(t => t.From)
+                .Include(t => t.To)
+                .Include(t => t.Car);
+
+            if (fromId.HasValue)
+                query = query.Where(t => t.FromId == fromId.Value);
+
+            if (toId.HasValue)
+                query = query.Where(t => t.ToId == toId.Value);
+
+            if (!string.IsNullOrWhiteSpace(remark))
+                query = query.Where(t => t.Remark.Contains(remark));
+
+            if (departureMileage.HasValue)
+                query = query.Where(t => t.DepartureMileage == departureMileage.Value);
+
+            if (arrivalMileage.HasValue)
+                query = query.Where(t => t.ArrivalMileage == arrivalMileage.Value);
+
+            if (departureFrom.HasValue)
+                query = query.Where(t => t.Departure >= departureFrom.Value);
+
+            if (departureTo.HasValue)
+                query = query.Where(t => t.Departure <= departureTo.Value);
+
+            if (arrivalFrom.HasValue)
+                query = query.Where(t => t.Arrival >= arrivalFrom.Value);
+
+            if (arrivalTo.HasValue)
+                query = query.Where(t => t.Arrival <= arrivalTo.Value);
+
+            if (privateMileage.HasValue)
+                query = query.Where(t => t.PrivateMileage == privateMileage.Value);
+
+            if (carId.HasValue)
+                query = query.Where(t => t.CarId == carId.Value);
+
+            if (!string.IsNullOrWhiteSpace(carPlateNumber))
+                query = query.Where(t => t.Car.PlateNumber == carPlateNumber);
+
+            return await query.ToListAsync();
         }
     }
 }

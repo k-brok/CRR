@@ -1,22 +1,28 @@
 ﻿@page "/"
+@inject DialogService DialogService
+
 
 <PageTitle>Home</PageTitle>
 
 <RadzenStack Gap="1rem" Style="position: relative">
     <RadzenRow>
-        <RadzenColumn Size="4">
-            <RadzenCard Variant="Variant.Outlined" Style="height: 100%;">
-                <RadzenStack JustifyContent="JustifyContent.SpaceBetween" Style="height: 100%;" >
-                    <RadzenButton Click=@(args => OpenNewTrip()) Text="Aankomst toevoegen" ButtonStyle="ButtonStyle.Primary" />
-                </RadzenStack>
+        <RadzenColumn Size="6">
+            <RadzenCard>
+                <RadzenButton Click=@(args => OpenNewTrip()) Text="Nieuwe rit toevoegen" ButtonStyle="ButtonStyle.Primary" />
             </RadzenCard>
+        </RadzenColumn>
+        <RadzenColumn Size="6">
+            <CRR.APP.Components.YearOverview />
         </RadzenColumn>
     </RadzenRow>
 </RadzenStack>
 
 @code{
+    
     async Task OpenNewTrip()
     {
-         
+         await DialogService.OpenAsync<CRR.APP.Dialog.TripDialog>($"Nieuwe Rit",
+               new Dictionary<string, object>(),
+               new DialogOptions());
     }
 }

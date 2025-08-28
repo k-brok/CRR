@@ -11,12 +11,22 @@ public static class TripEndpoints
 {
     public static void MapTripEndpoints(this WebApplication app)
     {
-        var group = app.MapGroup("/api/trips");
+        var group = app.MapGroup("/api/trips").WithTags("Trips");
 
         group.MapGet("/", async (ITripService service) =>
         {
             var trips = await service.GetAllAsync();
             var tripDtos = trips.Select(t => t.ToDto());
+            return Results.Ok(tripDtos);
+        });
+
+        group.MapGet("/FromYear", async (ITripService service, string year = null) =>
+        {
+            var trips = await service.GetAllAsync();
+            if (year == null)
+                year = DateTime.Now.Year.ToString();
+            var TripsOfYear = trips.Where(T => T.Departure.Year.ToString() == year);
+            var tripDtos = TripsOfYear.Select(t => t.ToDto());
             return Results.Ok(tripDtos);
         });
 
@@ -48,6 +58,33 @@ public static class TripEndpoints
         {
             var success = await service.DeleteAsync(id);
             return success ? Results.NoContent() : Results.NotFound();
+        });
+
+        group.MapGet("/Filter", async (
+            Guid? fromId,
+            Guid? toId,
+            string? remark,
+            int? departureMileage,
+            int? arrivalMileage,
+            DateTime? departureFrom,
+            DateTime? departureTo,
+            DateTime? arrivalFrom,
+            DateTime? arrivalTo,
+            int? privateMileage,
+            Guid? carId,
+            string? carPlateNumber,
+            ITripService service) =>
+        {
+            var trips = await service.GetFilteredAsync(
+                fromId, toId, remark,
+                departureMileage, arrivalMileage,
+                departureFrom, departureTo,
+                arrivalFrom, arrivalTo,
+                privateMileage, carId, carPlateNumber
+            );
+
+            var tripDtos = trips.Select(t => t.ToDto());
+            return Results.Ok(tripDtos);
         });
 
     }

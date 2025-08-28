@@ -1,0 +1,329 @@
+@page "/Imports"
+@inject IJSRuntime JS
+@using System.Text.Json
+@using System.Text.RegularExpressions
+@using System.Threading.Tasks
+@inject DialogService DialogService
+@inject AddressService _AddressService
+@inject CarService _CarService
+@inject TripService _TripService
+
+<h3>CSV Import</h3>
+
+<RadzenCard Style="max-width:600px;">
+    <RadzenUpload ChooseText="CSV kiezen"
+                  Accept=".csv"
+                  Style="width: 100%;"
+                  Change="@OnFileSelected" />
+</RadzenCard>
+
+@if (!string.IsNullOrWhiteSpace(Summary))
+{
+    <RadzenCard Style="margin-top: 20px;">
+        <h4>Samenvatting</h4>
+        <p><b>Aantal regels (excl. header):</b> @RowCount</p>
+        <p><b>Kolommen:</b> @string.Join(", ", Headers)</p>
+    </RadzenCard>
+}
+
+@if (ErrorResults.Any())
+{
+    <RadzenCard Style="margin-top: 20px; background:#fee;">
+        <h4>Fouten</h4>
+        <ul>
+            @foreach (var err in ErrorResults)
+            {
+                <li>
+                    <b>Lijn @err.LineNumber:</b>
+                    <ul>
+                        @foreach (var e in err.Errors)
+                        {
+                            <li>@e</li>
+                        }
+                    </ul>
+                    @if(err.FromAddressError){
+                        <RadzenButton Click=@(() => CreateAddress(err)) Text="Wijzig vertrek Address" ButtonStyle="ButtonStyle.Primary" />
+                    }
+                    @if(err.ToAddressError){
+                        <RadzenButton Click=@(() => CreateAddress(err)) Text="Wijzig aankomst Address" ButtonStyle="ButtonStyle.Primary" />
+                    }
+                </li>
+            }
+        </ul>
+    </RadzenCard>
+}
+
+@code {
+    int RowCount;
+    List<string> Headers;
+    string Summary;
+
+    List<LineParseResult> ErrorResults = new();
+
+    private async Task OnFileSelected(UploadChangeEventArgs args)
+    {
+        var file = args.Files.FirstOrDefault();
+        if (file == null)
+            return;
+
+        using var stream = file.OpenReadStream();
+        using var reader = new StreamReader(stream);
+        var content = await reader.ReadToEndAsync();
+
+        var parseResults = await ParseCsvContent(content);
+
+        ErrorResults.Clear();
+        var validResults = new List<LineParseResult>();
+
+        foreach (var r in parseResults)
+        {
+            if (r.Errors.Any())
+                ErrorResults.Add(r);
+            else
+                validResults.Add(r);
+        }
+
+        // ✅ Alleen correcte resultaten verwerken
+        foreach (var ok in validResults)
+        {
+            await ProcessLine(ok);
+        }
+    }
+
+    /// <summary>
+    /// Leest CSV inhoud en maakt LineParseResults
+    /// </summary>
+    async Task<List<LineParseResult>> ParseCsvContent(string content)
+    {
+        var results = new List<LineParseResult>();
+        var lines = content.Split('\n', StringSplitOptions.RemoveEmptyEntries);
+        if (lines.Length == 0)
+        {
+            Summary = "Bestand is leeg.";
+            return results;
+        }
+
+        Headers = lines[0].Trim().Split(';').ToList();
+        RowCount = lines.Length - 1;
+        Summary = $"Bestand bevat {RowCount} gegevensregels en {Headers.Count} kolommen.";
+        Console.WriteLine(string.Join(", ", Headers));
+
+        int lineNr = 0;
+        foreach (string line in lines.Skip(6))
+        {
+                lineNr++;
+                var result = await ValidateLine(line, lineNr);
+                results.Add(result);
+        }
+
+        return results;
+    }
+
+    /// <summary>
+    /// Parse + validatie van een enkele regel (CSV input)
+    /// </summary>
+    async Task<LineParseResult> ValidateLine(string line, int lineNr)
+    {
+        var result = new LineParseResult { LineNumber = lineNr };
+
+        try
+        {
+            var values = line.Trim().Split(';').ToList();
+
+            if(values.Count == 0 || string.IsNullOrWhiteSpace(values[0]))
+            {
+                result.Errors.Add("Line is empty.");
+                return result;
+            }
+
+            result.values = values;
+
+            // Trip vullen
+            try
+            {
+                result.Trip = new Trip
+                {
+                    DepartureMileage = int.Parse(values[16]),
+                    ArrivalMileage = int.Parse(values[17]),
+                    Departure = DateTime.Parse(values[2] + " " + values[3]),
+                    Arrival = DateTime.Parse(values[2] + " " + values[4]),
+                    PrivateMileage = int.Parse(values[20]),
+                    Remark = values[24]
+                };
+            }
+            catch (Exception ex)
+            {
+                result.Errors.Add($"Trip parsing error: {ex.Message}");
+            }
+
+            result.car = ParseCar(values[6]);
+
+            // FromAddress
+            result.FromAddress = ParseAddress(values[8], values[9], values[10], "FromAddress");
+
+            // ToAddress
+            result.ToAddress = ParseAddress(values[12], values[13], values[14], "ToAddress");
+
+            result = await ValidateLine(result);
+        }
+        catch (Exception ex)
+        {
+            result.Errors.Add($"Onverwachte parsing fout: {ex.Message}");
+            Console.WriteLine(ex.StackTrace);
+        }
+
+        return result;
+    }
+
+    Car ParseCar(string platenumber)
+    {
+        var car = new Car
+        {
+            PlateNumber = platenumber,
+        };
+        return car;
+    }
+
+    /// <summary>
+    /// Hercontroleert een bestaand LineParseResult (bijv. na AddressDialog)
+    /// </summary>
+    async Task<LineParseResult> ValidateLine(LineParseResult result)
+    {
+        //result.Errors.Clear()
+
+        // Controleer FromAddress
+        if (result.FromAddress != null && string.IsNullOrWhiteSpace(result.FromAddress.Number))
+        {
+            result.Errors.Add("FromAddress: huisnummer ontbreekt");
+            result.FromAddressError = true;
+        }
+        else{
+            result.FromAddressError = false;
+        
+        }
+
+        // Controleer ToAddress
+        if (result.ToAddress != null && string.IsNullOrWhiteSpace(result.ToAddress.Number))
+        {
+            result.Errors.Add("ToAddress: huisnummer ontbreekt");
+            result.ToAddressError = true;
+        }
+        else{
+            result.ToAddressError = false;
+        }
+
+        // Basis Trip check (optioneel uitbreiden)
+        if (result.Trip != null && result.Trip.ArrivalMileage < result.Trip.DepartureMileage)
+        {
+            result.Errors.Add("Trip: Aankomst km-stand kleiner dan vertrek km-stand");
+        }
+
+        var tripsByPlate = await _TripService.GetFilteredAsync(
+            carPlateNumber: result.car.PlateNumber,
+            departureMileage: result.Trip.DepartureMileage,
+            arrivalMileage: result.Trip.ArrivalMileage
+        );
+        if(tripsByPlate.Any())
+        {
+            result.Errors.Add($"Trip: Trip met kenteken: {result.car.PlateNumber} en kilometerstanden: {result.Trip.DepartureMileage.ToString()} naar {result.Trip.ArrivalMileage.ToString()} bestaat al.");
+        }
+
+
+        return result;
+    }
+
+    /// <summary>
+    /// Hulpfunctie voor adres parsing
+    /// </summary>
+    Address ParseAddress(string name, string streetWithNr, string zip, string label)
+    {
+        var addr = new Address
+        {
+            Name = name,
+            ZipCode = Regex.Replace(zip.ToUpper(), @"\s+", "")
+        };
+
+        int lastSpaceIndex = streetWithNr.LastIndexOf(' ');
+        if (lastSpaceIndex >= 0)
+        {
+            addr.Street = streetWithNr.Substring(0, lastSpaceIndex);
+            addr.Number = streetWithNr.Substring(lastSpaceIndex + 1);
+        }
+        return addr;
+    }
+
+    /// <summary>
+    /// Verwerkt een correcte regel (adres ophalen of aanmaken)
+    /// </summary>
+    async Task ProcessLine(LineParseResult result){
+        var from = await _AddressService.GetByZIPAsync(result.FromAddress.ZipCode, result.FromAddress.Number);
+        if (from == null)
+        {
+            await _AddressService.CreateAsync(result.FromAddress);
+            from = await _AddressService.GetByZIPAsync(result.FromAddress.ZipCode, result.FromAddress.Number);
+        }
+        result.Trip.From = from;
+        result.Trip.FromId = from.Id;
+
+        var to = await _AddressService.GetByZIPAsync(result.ToAddress.ZipCode, result.ToAddress.Number);
+        if (to == null)
+        {
+            await _AddressService.CreateAsync(result.ToAddress);
+            to = await _AddressService.GetByZIPAsync(result.ToAddress.ZipCode, result.ToAddress.Number);
+        }
+        result.Trip.To = to;
+        result.Trip.ToId = to.Id;
+
+        var car = await _CarService.GetByPlatenumberAsync(result.car.PlateNumber);
+        if (car == null)
+        {
+            await _CarService.CreateAsync(result.car);
+            car = await _CarService.GetByPlatenumberAsync(result.car.PlateNumber);
+        }
+        result.Trip.Car = car;
+        result.Trip.CarId = car.Id;
+
+        await _TripService.CreateAsync(result.Trip);
+    }
+
+    void OnProgress(UploadProgressArgs args) => Console.WriteLine($"Progress: {args.Progress}%");
+    void OnComplete(UploadCompleteEventArgs args) => Console.WriteLine("Upload voltooid");
+    void OnError(UploadErrorEventArgs args) => Console.WriteLine("Upload mislukt");
+
+    /// <summary>
+    /// Opent dialoog om adres aan te passen, daarna hercontrole
+    /// </summary>
+    async Task CreateAddress(LineParseResult result)
+    {
+        var AddressData = result.FromAddressError ? result.FromAddress : result.ToAddress;
+
+        var TripAddress = await DialogService.OpenAsync<CRR.APP.Dialog.AddressDialog>($"Address {AddressData.Name}",
+              new Dictionary<string, object>() { { "AddressData", AddressData } },
+              new DialogOptions() { Width = "700px", Height = "520px" });
+
+        result.Errors.Clear();
+        result = await ValidateLine(result);
+
+        // Als er nu geen fouten meer zijn → verwerken
+        if (!result.Errors.Any())
+        {
+            ErrorResults.Remove(result);
+            await ProcessLine(result);
+        }
+
+        StateHasChanged();
+    }
+
+    public class LineParseResult
+    {
+        public List<string>? values { get; set; }
+        public int LineNumber { get; set; }
+        public Trip Trip { get; set; }
+        public Address FromAddress { get; set; }
+        public bool FromAddressError { get; set; } = false;
+        public Address ToAddress { get; set; }
+        public bool ToAddressError { get; set; } = false;
+        public List<string> Errors { get; set; } = new();
+        public Car car {get; set;}
+    }
+}
