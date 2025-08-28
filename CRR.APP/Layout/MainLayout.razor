@@ -15,10 +15,10 @@
     <RadzenSidebar Responsive="false" @bind-Expanded="@sidebarExpanded" style="position: absolute">
         <RadzenPanelMenu>
             <RadzenPanelMenuItem Text="Home" Icon="home" Path="/" Click=@(() => sidebarExpanded = false) />
-            <RadzenPanelMenuItem Text="Adressen" Icon="account_box" Path="addresses" Click=@(() => sidebarExpanded = false) />
-            <RadzenPanelMenuItem Text="Auto's" Icon="account_box" Path="cars" Click=@(() => sidebarExpanded = false) />
-            <RadzenPanelMenuItem Text="Ritten lijst" Icon="account_box" Path="TripList" Click=@(() => sidebarExpanded = false) />
-            <RadzenPanelMenuItem Text="Standaard ritten" Icon="account_box" Path="DefaultTripList" Click=@(() => sidebarExpanded = false) />
+            <RadzenPanelMenuItem Text="Adressen" Icon="home_work" Path="addresses" Click=@(() => sidebarExpanded = false) />
+            <RadzenPanelMenuItem Text="Auto's" Icon="traffic_jam" Path="cars" Click=@(() => sidebarExpanded = false) />
+            <RadzenPanelMenuItem Text="Ritten lijst" Icon="route" Path="TripList" Click=@(() => sidebarExpanded = false) />
+            <RadzenPanelMenuItem Text="Standaard ritten" Icon="hallway" Path="DefaultTripList" Click=@(() => sidebarExpanded = false) />
         </RadzenPanelMenu>
     </RadzenSidebar>
     <RadzenBody>
