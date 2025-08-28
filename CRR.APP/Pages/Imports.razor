@@ -45,7 +45,7 @@
                         <RadzenButton Click=@(() => CreateAddress(err)) Text="Wijzig vertrek Address" ButtonStyle="ButtonStyle.Primary" />
                     }
                     @if(err.ToAddressError){
-                        <RadzenButton Click=@(() => CreateAddress(err)) Text="Wijzig aankomst Address" ButtonStyle="ButtonStyle.Primary" />
+                        <RadzenButton Click=@(() => CreateAddress(err, false)) Text="Wijzig aankomst Address" ButtonStyle="ButtonStyle.Primary" />
                     }
                 </li>
             }
@@ -293,13 +293,23 @@
     /// <summary>
     /// Opent dialoog om adres aan te passen, daarna hercontrole
     /// </summary>
-    async Task CreateAddress(LineParseResult result)
+    async Task CreateAddress(LineParseResult result, bool from = true)
     {
-        var AddressData = result.FromAddressError ? result.FromAddress : result.ToAddress;
+        Address AddressData = null;
 
-        var TripAddress = await DialogService.OpenAsync<CRR.APP.Dialog.AddressDialog>($"Address {AddressData.Name}",
-              new Dictionary<string, object>() { { "AddressData", AddressData } },
+        if(from)
+            AddressData = result.FromAddress;
+        else
+            AddressData = result.ToAddress;
+
+        AddressData = await DialogService.OpenAsync<CRR.APP.Dialog.AddressDialog>($"Address {AddressData.Name}",
+              new Dictionary<string, object>() { { "AddressData", AddressData }, { "ShowExisting", true } },
               new DialogOptions() { Width = "700px", Height = "520px" });
+
+        if(from)
+            result.FromAddress = AddressData;
+        else
+            result.ToAddress = AddressData;
 
         result.Errors.Clear();
         result = await ValidateLine(result);
