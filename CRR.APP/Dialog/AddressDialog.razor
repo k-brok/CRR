@@ -63,6 +63,7 @@
 
         if(ShowExisting){
             ExistingAddresses = await _AddressService.GetAllAsync();
+            ExistingAddresses = ExistingAddresses.OrderBy(A=>A.Name).ToList();
             PickedAddress = ExistingAddresses.First();
         }
         await base.OnInitializedAsync();
