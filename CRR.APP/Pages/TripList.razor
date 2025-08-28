@@ -1,6 +1,10 @@
 @page "/TripList"
-
+@inject AddressService _AddressService
+@inject TripService _TripService
+@using System.Text.Json
 <PageTitle>Ritten overzicht</PageTitle>
+
+<RadzenButton Text="Controleer" Click=ProccessTrips Disabled=CheckRunning />
 
 <RadzenDataGrid TItem="Trip" Data=TripListData>
     <Columns>
@@ -35,15 +39,61 @@
                 <RadzenDataGridColumn Property="@nameof(Trip.PrivateMileage)" Title="privé" />
             </Columns>
         </RadzenDataGridColumn>
+        <RadzenDataGridColumn Title="Foutmeldingen" Visible=CheckHasRun>
+            <Template Context="trip">
+                <ul>
+                    @foreach(string error in trip.errors){
+                        <li>
+                            @error
+                        </li>
+                    }
+                </ul>
+            </Template>
+        </RadzenDataGridColumn>
     </Columns>
 </RadzenDataGrid>
 
 @code{
+    bool CheckRunning {get; set;} = false;
+    bool CheckHasRun {get; set;} = false;
     List<Trip> TripListData {get; set;}
     List<Address> AllAddresses {get; set;}
     protected async override Task OnInitializedAsync(){
         TripListData = await _TripService.GetAllAsync();
         AllAddresses = await _AddressService.GetAllAsync();
+        TripListData = TripListData.OrderBy(T=> T.Departure).ToList();
         await base.OnInitializedAsync();
+    }
+    async Task ProccessTrips(){
+        CheckRunning = true;
+
+        List<CarTrip> CarTrips = new List<CarTrip>();
+        CarTrip? CurrentCar = null;
+
+        foreach(Trip trip in TripListData.OrderBy(T=> T.Departure)){
+            CurrentCar = CarTrips.FirstOrDefault(C=> C.CarId == trip.CarId);
+            if(CurrentCar == null)
+            {
+                CurrentCar = new CarTrip{
+                    CarId = trip.CarId
+                };
+                CarTrips.Add(CurrentCar);
+            }
+            if(CurrentCar.LastTrip != null){
+                if(CurrentCar.LastTrip.ArrivalMileage != trip.DepartureMileage)
+                    trip.errors.Add("Vertrek kilometers is niet gelijk aan voorgaande rit.");
+            }
+            CurrentCar.LastTrip = trip;
+        }
+
+        Task.Delay(50);
+        CheckRunning = false;
+        CheckHasRun = true;
+        StateHasChanged();
+    }
+
+    class CarTrip{
+        public Trip? LastTrip {get; set;} = null;
+        public Guid CarId {get; set;}
     }
 }

@@ -2,6 +2,7 @@ using CRR.Shared.Entities;
 using CRR.API.Interface;
 using CRR.API.Data;
 using Microsoft.EntityFrameworkCore;
+using System.Text.RegularExpressions;
 
 namespace CRR.API.Services
 {
@@ -23,9 +24,14 @@ namespace CRR.API.Services
         {
             return await _context.Set<Address>().FindAsync(id);
         }
+        public async Task<Address?> GetByZIPAsync(string ZipCode,string Number)
+        {
+            return await _context.Set<Address>().FirstOrDefaultAsync(A=> A.ZipCode == ZipCode && A.Number == Number);
+        }
 
         public async Task<Address> CreateAsync(Address address)
         {
+            address.ZipCode = Regex.Replace(address.ZipCode.ToUpper(), @"\s+", "");
             _context.Set<Address>().Add(address);
             await _context.SaveChangesAsync();
             return address;
@@ -39,7 +45,7 @@ namespace CRR.API.Services
             existing.Name = updatedAddress.Name;
             existing.Street = updatedAddress.Street;
             existing.Number = updatedAddress.Number;
-            existing.ZipCode = updatedAddress.ZipCode;
+            existing.ZipCode = Regex.Replace(updatedAddress.ZipCode.ToUpper(), @"\s+", "");
             existing.Type = updatedAddress.Type;
 
             await _context.SaveChangesAsync();

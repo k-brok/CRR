@@ -1,3 +1,8 @@
+@inject AddressService _AddressService
+@inject CarService _CarService
+@inject TripService _TripService
+@inject DialogService DialogService
+
 <RadzenTemplateForm TItem="Trip" Data=@NewTrip Submit=@OnSubmit>
     <RadzenStack Gap="10px">    
         <RadzenFieldset AllowCollapse="true" ExpandTitle="Expand Departure." CollapseTitle="Collapse Departure."
@@ -9,10 +14,18 @@
             </HeaderTemplate>
             <ChildContent>
                 <RadzenStack>
-                    <RadzenFormField Text="Vertrek address"  Variant=Variant.Flat>
-                        <RadzenDropDown @bind-Value=@NewTrip.From @onchange=UpdateTitles TextProperty="@nameof(Address.Name)" Data=@AllAddresses Name="DropDownFrom" />
-                        <RadzenRequiredValidator Component="DropDownFrom" Text="Een vertrek adres is verplicht" Popup=true Style="position: absolute"/>
-                    </RadzenFormField>
+                    <RadzenRow >
+                        <RadzenColumn Size="10">
+                            <RadzenFormField Text="Vertrek address" Style="Width: 100%" Variant=Variant.Flat>
+                                <RadzenDropDown @bind-Value=@NewTrip.From @onchange=UpdateTitles TextProperty="@nameof(Address.Name)" Data=@AllAddresses Name="DropDownFrom" />
+                                <RadzenRequiredValidator Component="DropDownFrom" Text="Een vertrek adres is verplicht" Popup=true Style="position: absolute"/>
+                            </RadzenFormField>
+                        </RadzenColumn>
+                        <RadzenColumn Size="2">
+                            <RadzenButton Click=@(() => CreateAddress(new Address(),AddressChoise.From)) Icon="add_circle" ButtonStyle="ButtonStyle.Primary" />
+                        </RadzenColumn>
+                    </RadzenRow>
+                    
                     <RadzenFormField Text="Kilometerstand vertrek" Variant=Variant.Flat>
                         <RadzenNumeric @bind-Value=@NewTrip.DepartureMileage @onchange=@(args => UpdateTitles()) Name="DepartureMileage"/>
                         <RadzenNumericRangeValidator Component="DepartureMileage" Min="1" opup=true Text="Kilometerstand moet minimaal 1km zijn!" Style="position: absolute" />
@@ -41,10 +54,18 @@
             </HeaderTemplate>
             <ChildContent>
                 <RadzenStack>
-                    <RadzenFormField Text="Aankomst address" Variant=Variant.Flat>
-                        <RadzenDropDown @bind-Value=@NewTrip.To @onchange=@(args => UpdateAddressTo()) TextProperty="@nameof(Address.Name)" Data=@AllAddresses Name="DropDownTo" />
-                        <RadzenRequiredValidator Component="DropDownTo" Text="First name is required" Popup=true Style="position: absolute"/>
-                    </RadzenFormField>
+                    
+                    <RadzenRow >
+                        <RadzenColumn Size="10">
+                            <RadzenFormField Text="Aankomst address" Style="Width: 100%" Variant=Variant.Flat>
+                                <RadzenDropDown @bind-Value=@NewTrip.To @onchange=@(args => UpdateAddressTo()) TextProperty="@nameof(Address.Name)" Data=@AllAddresses Name="DropDownTo" />
+                                <RadzenRequiredValidator Component="DropDownTo" Text="First name is required" Popup=true Style="position: absolute"/>
+                            </RadzenFormField>
+                        </RadzenColumn>
+                        <RadzenColumn Size="2">
+                            <RadzenButton Click=@(() => CreateAddress(new Address(),AddressChoise.to)) Icon="add_circle" ButtonStyle="ButtonStyle.Primary" />
+                        </RadzenColumn>
+                    </RadzenRow>
                     <RadzenFormField Text="Kilometerstand aankomst" Variant=Variant.Flat>
                         <RadzenNumeric @bind-Value=@NewTrip.ArrivalMileage Name="ArrivalMileage" @onchange=@(args => UpdateTitles()) />
                         <RadzenNumericRangeValidator Component="ArrivalMileage" Min=@NewTrip.DepartureMileage Popup=true Text="Kilometerstand bij aankomst moet groter dan bij vertrek zijn!" Style="position: absolute" />
@@ -92,9 +113,15 @@
     private DateTime CurrentDepartureTime{get; set;}
     private Trip NewTrip {get; set;} = new Trip();
     private List<Address> AllAddresses {get; set;} = new List<Address>();
+    private List<Car> AllCars {get; set;} = new List<Car>();
     protected override async Task OnInitializedAsync(){
         Trip PreviousTrip = await _TripService.GetLatestAsync();
         AllAddresses = await _AddressService.GetAllAsync();
+        AllCars = await _CarService.GetAllAsync();
+
+        Car defaulcar  = await _CarService.GetDefaultAsync();
+        NewTrip.Car = defaulcar;
+        NewTrip.CarId = defaulcar.Id;
 
         if(PreviousTrip != null){
             NewTrip.DepartureMileage = PreviousTrip.ArrivalMileage;
@@ -147,7 +174,7 @@
 
         await UpdateTitles();
     }
-    void OnSubmit(Trip model){
+    async Task OnSubmit(Trip model){
         model.FromId = model.From.Id;
         model.ToId = model.To.Id;
 
@@ -156,6 +183,27 @@
         } else{
             model.PrivateMileage = PrivateMileages;
         }
-        _TripService.CreateAsync(model);
+        await _TripService.CreateAsync(model);
+        DialogService.Close();
+    }
+    async Task CreateAddress(Address AddressData,AddressChoise Choise)
+    {
+         var TripAddress = await DialogService.OpenAsync<CRR.APP.Dialog.AddressDialog>($"Address {AddressData.Name}",
+               new Dictionary<string, object>() { { "AddressData", AddressData } },
+               new DialogOptions() { Width = "700px", Height = "520px" });
+        AllAddresses = await _AddressService.GetAllAsync();
+        if(Choise == AddressChoise.From){
+            NewTrip.From = AllAddresses.FirstOrDefault(A=>A.ZipCode == TripAddress.ZipCode);
+            NewTrip.FromId = AllAddresses.FirstOrDefault(A=>A.ZipCode == TripAddress.ZipCode).Id;
+        }
+        else{
+            NewTrip.To = AllAddresses.FirstOrDefault(A=>A.ZipCode == TripAddress.ZipCode);
+            NewTrip.ToId = AllAddresses.FirstOrDefault(A=>A.ZipCode == TripAddress.ZipCode).Id;
+        }
+        StateHasChanged();
+    }
+    enum AddressChoise{
+        From,
+        to
     }
 }

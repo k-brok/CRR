@@ -23,6 +23,8 @@ public class Program
         
         builder.Services.AddScoped<IAddressService, AddressService>();
         builder.Services.AddScoped<ITripService, TripService>();
+        builder.Services.AddScoped<IDefaultTripService, DefaultTripService>();
+         builder.Services.AddScoped<ICarService, CarService>();
 
         var allowedOrigins = builder.Configuration.GetSection("AllowedOrigins").Get<string[]>();
 
@@ -48,10 +50,7 @@ public class Program
         //if (app.Environment.IsDevelopment())
         //{
             app.UseSwagger();
-            app.UseSwaggerUI(option => 
-            { 
-                option.RoutePrefix = "api"; 
-            });
+            app.UseSwaggerUI();
         //}
 
         app.UseHttpsRedirection();
@@ -62,6 +61,8 @@ public class Program
 
         app.MapAddressEndpoints();
         app.MapTripEndpoints();
+        app.MapDefaultTripEndpoints();
+        app.MapCarEndpoints();
 
         app.Run();
     }

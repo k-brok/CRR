@@ -1,0 +1,60 @@
+﻿@page "/cars"
+@inject CarService _CarService
+@inject DialogService DialogService
+
+<PageTitle>Cares</PageTitle>
+
+<RadzenStack Orientation=Orientation.Horizontal JustifyContent=JustifyContent.SpaceBetween>
+    <RadzenText>Cares</RadzenText>
+    <RadzenButton Click=@(() => OpenCar(new Car())) Icon="add_circle" ButtonStyle="ButtonStyle.Primary" />
+</RadzenStack>
+
+<RadzenDataList class="rz-p-0 rz-m-0" AllowVirtualization=false
+                    Data="@cares" TItem="Car">
+        <Template Context="car">
+                <RadzenRow AlignItems=AlignItems.Center Gap="0">
+                    <RadzenColumn Size="6" SizeLG="3" class="rz-p-1 product-title">
+
+                        <RadzenText TextStyle="TextStyle.H6" TagName="TagName.H5" class="rz-color-on-secondary-lighter">@(car.PlateNumber)</RadzenText>
+                    </RadzenColumn>
+                    <RadzenColumn Size="12" SizeLG="2" class="rz-p-1">
+                        <RadzenColumn Size="6" class="rz-p-1">
+                            <RadzenButton Text="Details" Click=@(()=>OpenCar(car)) Style="width: 100%" />
+                        </RadzenColumn>
+                        <RadzenColumn Size="6" class="rz-p-1">
+                            <RadzenButton Text="Standaard" Click=@(()=>SetDefault(car)) Style="width: 100%" Disabled=@car.Default />
+                        </RadzenColumn>
+                    </RadzenColumn>
+                </RadzenRow>
+        </template>
+</RadzenDataList>
+
+@code {
+    private List<Car> cares {get; set;} = new List<Car>();
+
+    protected override async Task OnInitializedAsync()
+    {
+        DialogService.OnClose += Close;
+        cares = await _CarService.GetAllAsync();
+    }
+
+    async Task OpenCar(Car CarData)
+    {
+         await DialogService.OpenAsync<CRR.APP.Dialog.CarDialog>($"Car {CarData.PlateNumber}",
+               new Dictionary<string, object>() { { "CarData", CarData } },
+               new DialogOptions() { Width = "700px", Height = "520px" });
+    }
+
+    void Close(dynamic result){
+        if(result != null && result is Car){
+            cares.Add(result);
+            StateHasChanged();
+        }
+    }
+    async Task SetDefault(Car CarData){
+        await _CarService.SetDefaultAsync(CarData);
+        cares = await _CarService.GetAllAsync();
+        StateHasChanged();
+    }
+
+}

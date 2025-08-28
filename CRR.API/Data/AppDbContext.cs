@@ -13,6 +13,7 @@ namespace CRR.API.Data
 		public DbSet<Trip> Trips { get; set; }
 		public DbSet<DefaultTrip> DefaultTrips { get; set; }
 		public DbSet<Address> Addresses { get; set; }
+		public DbSet<Car> Cars {get; set;}
 
 		protected override void OnModelCreating(ModelBuilder modelBuilder)
 		{

@@ -6,6 +6,7 @@ namespace CRR.API.Interface
     {
         Task<IEnumerable<Address>> GetAllAsync();
         Task<Address?> GetByIdAsync(Guid id);
+        Task<Address?> GetByZIPAsync(string ZipCode,string Number);
         Task<Address> CreateAsync(Address address);
         Task<Address?> UpdateAsync(Guid id, Address updatedAddress);
         Task<bool> DeleteAsync(Guid id);

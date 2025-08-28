@@ -11,8 +11,8 @@ using Microsoft.EntityFrameworkCore.Storage.ValueConversion;
 namespace CRR.API.Migrations
 {
     [DbContext(typeof(AppDbContext))]
-    [Migration("20250710082958_AddRemark")]
-    partial class AddRemark
+    [Migration("20250717122634_Initial")]
+    partial class Initial
     {
         /// <inheritdoc />
         protected override void BuildTargetModel(ModelBuilder modelBuilder)
@@ -50,6 +50,51 @@ namespace CRR.API.Migrations
                     b.ToTable("Addresses");
                 });
 
+            modelBuilder.Entity("CRR.Shared.Entities.Car", b =>
+                {
+                    b.Property<Guid>("Id")
+                        .ValueGeneratedOnAdd()
+                        .HasColumnType("TEXT");
+
+                    b.Property<string>("PlateNumber")
+                        .IsRequired()
+                        .HasColumnType("TEXT");
+
+                    b.HasKey("Id");
+
+                    b.ToTable("Cars");
+                });
+
+            modelBuilder.Entity("CRR.Shared.Entities.DefaultTrip", b =>
+                {
+                    b.Property<Guid>("Id")
+                        .ValueGeneratedOnAdd()
+                        .HasColumnType("TEXT");
+
+                    b.Property<int>("DefaultMileage")
+                        .HasColumnType("INTEGER");
+
+                    b.Property<Guid>("FromId")
+                        .HasColumnType("TEXT");
+
+                    b.Property<int>("PrivateMileage")
+                        .HasColumnType("INTEGER");
+
+                    b.Property<Guid>("ToId")
+                        .HasColumnType("TEXT");
+
+                    b.Property<int>("Type")
+                        .HasColumnType("INTEGER");
+
+                    b.HasKey("Id");
+
+                    b.HasIndex("FromId");
+
+                    b.HasIndex("ToId");
+
+                    b.ToTable("DefaultTrips");
+                });
+
             modelBuilder.Entity("CRR.Shared.Entities.Trip", b =>
                 {
                     b.Property<Guid>("Id")
@@ -62,19 +107,20 @@ namespace CRR.API.Migrations
                     b.Property<int>("ArrivalMileage")
                         .HasColumnType("INTEGER");
 
+                    b.Property<Guid>("CarId")
+                        .HasColumnType("TEXT");
+
                     b.Property<DateTime>("Departure")
                         .HasColumnType("TEXT");
 
                     b.Property<int>("DepartureMileage")
                         .HasColumnType("INTEGER");
 
-                    b.Property<string>("Discriminator")
-                        .IsRequired()
-                        .HasMaxLength(13)
-                        .HasColumnType("TEXT");
-
                     b.Property<Guid>("FromId")
                         .HasColumnType("TEXT");
+
+                    b.Property<int>("PrivateMileage")
+                        .HasColumnType("INTEGER");
 
                     b.Property<string>("Remark")
                         .IsRequired()
@@ -85,28 +131,16 @@ namespace CRR.API.Migrations
 
                     b.HasKey("Id");
 
+                    b.HasIndex("CarId");
+
                     b.HasIndex("FromId");
 
                     b.HasIndex("ToId");
 
                     b.ToTable("Trips");
-
-                    b.HasDiscriminator().HasValue("Trip");
-
-                    b.UseTphMappingStrategy();
                 });
 
             modelBuilder.Entity("CRR.Shared.Entities.DefaultTrip", b =>
-                {
-                    b.HasBaseType("CRR.Shared.Entities.Trip");
-
-                    b.Property<int>("Type")
-                        .HasColumnType("INTEGER");
-
-                    b.HasDiscriminator().HasValue("DefaultTrip");
-                });
-
-            modelBuilder.Entity("CRR.Shared.Entities.Trip", b =>
                 {
                     b.HasOne("CRR.Shared.Entities.Address", "From")
                         .WithMany()
@@ -120,27 +154,32 @@ namespace CRR.API.Migrations
                         .OnDelete(DeleteBehavior.Cascade)
                         .IsRequired();
 
-                    b.OwnsOne("CRR.Shared.Entities.Distance", "Distance", b1 =>
-                        {
-                            b1.Property<Guid>("TripId")
-                                .HasColumnType("TEXT");
+                    b.Navigation("From");
 
-                            b1.Property<int>("Business")
-                                .HasColumnType("INTEGER");
+                    b.Navigation("To");
+                });
 
-                            b1.Property<int>("Private")
-                                .HasColumnType("INTEGER");
-
-                            b1.HasKey("TripId");
-
-                            b1.ToTable("Trips");
-
-                            b1.WithOwner()
-                                .HasForeignKey("TripId");
-                        });
-
-                    b.Navigation("Distance")
+            modelBuilder.Entity("CRR.Shared.Entities.Trip", b =>
+                {
+                    b.HasOne("CRR.Shared.Entities.Car", "Car")
+                        .WithMany()
+                        .HasForeignKey("CarId")
+                        .OnDelete(DeleteBehavior.Cascade)
                         .IsRequired();
+
+                    b.HasOne("CRR.Shared.Entities.Address", "From")
+                        .WithMany()
+                        .HasForeignKey("FromId")
+                        .OnDelete(DeleteBehavior.Cascade)
+                        .IsRequired();
+
+                    b.HasOne("CRR.Shared.Entities.Address", "To")
+                        .WithMany()
+                        .HasForeignKey("ToId")
+                        .OnDelete(DeleteBehavior.Cascade)
+                        .IsRequired();
+
+                    b.Navigation("Car");
 
                     b.Navigation("From");
 

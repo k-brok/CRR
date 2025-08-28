@@ -1,0 +1,22 @@
+@inject TripService _TripService
+
+<RadzenCard>
+    <RadzenText>Overzicht van @Year</RadzenText>
+    <RadzenText>Kilometers:@TotalMileage</RadzenText>
+    <RadzenText>Waarvan Privé:@Private</RadzenText>
+</RadzenCard>
+
+@code{
+    [Parameter]
+    public string Year {get; set;} = DateTime.Now.Year.ToString();
+    int TotalMileage {get; set;}
+    int Private {get; set;}
+    protected async override Task OnInitializedAsync(){
+        var TripListData = await _TripService.GetFromYear();
+        if(TripListData.Any()){
+            TotalMileage = TripListData.Sum(T=>T.DefaultMileage);
+            Private = TripListData.Sum(T=>T.PrivateMileage);
+        }
+        await base.OnInitializedAsync();
+    }
+}

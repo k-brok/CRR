@@ -1,0 +1,103 @@
+@inject AddressService _AddressService
+@inject TripService _TripService
+@inject DefaultTripService _DefaultTripService
+@inject DialogService DialogService
+
+@if(IsRunning){
+    <RadzenProgressBarCircular ProgressBarStyle="ProgressBarStyle.Primary" Value="100" ShowValue="false" Mode="ProgressBarMode.Indeterminate" />
+} else {
+    @if(NewDefaultTrips.Any()){
+        <RadzenDataList class="rz-p-0 rz-m-0" AllowVirtualization="false"
+                        Data="@NewDefaultTrips" TItem="DefaultTrip">
+            <Template Context="defaultTrip">
+                <RadzenCard class="rz-mb-2 rz-shadow-md rz-p-3">
+                    <RadzenStack Orientation=Orientation.Vertical Gap="8px">
+                        <RadzenStack Orientation=Orientation.Horizontal Gap="10px">
+                            <RadzenText>@AllAddresses.FirstOrDefault(A => A.Id == defaultTrip.FromId)?.Name</RadzenText>
+                            <RadzenIcon Icon="arrows_outward" Style="font-size: 20px; text-align: center;" />
+                            <RadzenText>@AllAddresses.FirstOrDefault(A => A.Id == defaultTrip.ToId)?.Name</RadzenText>
+                        </RadzenStack>
+
+                        <RadzenDropDown 
+                            Data="@(Enum.GetValues(typeof(TripType)).Cast<Enum>())"
+                            @bind-Value="defaultTrip.Type"
+                            Style="width: 100%;" />
+
+                        <RadzenDivider />
+
+                        <RadzenStack Orientation=Orientation.Vertical Gap="2px">
+                            <RadzenLabel Text="Totaal kilometers" />
+                            <RadzenNumeric @bind-Value="defaultTrip.DefaultMileage" Style="width: 100%;" />
+                        </RadzenStack>
+
+                        <RadzenStack Orientation=Orientation.Vertical Gap="2px">
+                            <RadzenLabel Text="Privé kilometers" />
+                            <RadzenNumeric @bind-Value="defaultTrip.PrivateMileage" Style="width: 100%;" />
+                        </RadzenStack>
+
+                        <RadzenButton Icon="save" Text="Opslaan"
+                                    Click="@(args => AddNewDefaultTrip(defaultTrip))"
+                                    Style="width: 100%;" ButtonStyle="ButtonStyle.Primary" />
+                    </RadzenStack>
+                </RadzenCard>
+            </Template>
+        </RadzenDataList>
+    } else{
+        <RadzenText>Erzijn geen nieuwe standaard ritten gevonden.</RadzenText>
+    }
+}
+
+@code{
+    bool IsRunning = true;
+    List<DefaultTrip> NewDefaultTrips{get; set;} = new List<DefaultTrip>();
+    List<Address> AllAddresses {get; set;}
+    protected override async Task OnInitializedAsync()
+    {
+        AllAddresses = await _AddressService.GetAllAsync();
+        List<Trip> tripList = await _TripService.GetAllAsync();
+        List<DefaultTrip> defaultTripList = await _DefaultTripService.GetAllAsync();
+
+        var groupedTrips = tripList
+            .GroupBy(t => new 
+            { 
+                A = t.FromId.CompareTo(t.ToId) < 0 ? t.FromId : t.ToId,
+                B = t.FromId.CompareTo(t.ToId) < 0 ? t.ToId : t.FromId
+            });
+
+        foreach (var group in groupedTrips)
+        {
+            var tripsInGroup = group.ToList();
+            
+            var matchingDefaultTrip = defaultTripList.FirstOrDefault(d =>
+                (d.FromId == group.Key.A && d.ToId == group.Key.B) ||
+                (d.FromId == group.Key.B && d.ToId == group.Key.A));
+
+            if (matchingDefaultTrip == null)
+            {
+                matchingDefaultTrip = new DefaultTrip
+                {
+                    FromId = group.Key.A,
+                    ToId = group.Key.B
+                };
+
+                matchingDefaultTrip.DefaultMileage = (int)tripsInGroup.Average(t => t.DefaultMileage);
+                matchingDefaultTrip.PrivateMileage = (int)tripsInGroup.Average(t => t.PrivateMileage);
+
+                NewDefaultTrips.Add(matchingDefaultTrip);
+            }
+        }
+        await base.OnInitializedAsync();
+        await Task.Delay(50);
+        IsRunning = false;
+    }
+    async Task AddNewDefaultTrip(DefaultTrip defaultTrip){
+        IsRunning = true;
+        StateHasChanged();
+        await _DefaultTripService.CreateAsync(defaultTrip);
+        NewDefaultTrips.Remove(defaultTrip);
+        if(!NewDefaultTrips.Any())
+            DialogService.Close();
+        await Task.Delay(50);
+        IsRunning = false;
+    }
+}

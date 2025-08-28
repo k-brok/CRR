@@ -38,6 +38,15 @@ public class AddressService
         var response = await _httpClient.PutAsJsonAsync(Endpoint + "/" + address.Id, address.ToDto());
         return response.IsSuccessStatusCode;
     }
-
+    public async Task<Address?> GetByZIPAsync(string ZipCode,string Number)
+    {
+        var result = await _httpClient.GetAsync(Endpoint + "/zip?ZipCode=" + ZipCode + "&Number=" + Number);
+        if (result.IsSuccessStatusCode)
+        {
+            var Address = await result.Content.ReadFromJsonAsync<AddressDto>();
+            return Address.ToEntity();
+        }
+        return null;
+    }
     
 }

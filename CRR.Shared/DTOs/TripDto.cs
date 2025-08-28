@@ -11,6 +11,7 @@ public class TripDto
     public DateTime Departure { get; set; }
     public DateTime Arrival { get; set; }
     public int PrivateMileage {get; set;}
+    public Guid CarId { get; set; }
 }
 
 public class CreateTripDto
@@ -23,4 +24,5 @@ public class CreateTripDto
     public DateTime Departure { get; set; }
     public DateTime Arrival { get; set; }
     public int PrivateMileage {get; set;}
+    public Guid CarId { get; set; }
 }

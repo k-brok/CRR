@@ -1,3 +1,6 @@
+@inject AddressService _AddressService
+@inject DialogService DialogService
+ 
 <RadzenStack>
     @if(IsEdit){
         <RadzenRow Gap="1rem">
@@ -49,14 +52,23 @@
     }
     private async Task SaveAddress(Address address){
         bool Succeeded = false;
-        if(address.Id == Guid.Empty){
+
+        Address Existingaddress = await _AddressService.GetByZIPAsync(address.ZipCode,address.Number);
+
+        if(Existingaddress == null){
             Succeeded = await _AddressService.CreateAsync(address);
             if(Succeeded)
                 DialogService.Close(address);
         } else {
-            Succeeded = await _AddressService.SaveAsync(address);
+            Existingaddress.Name = address.Name;
+            Existingaddress.Number = address.Number;
+            Existingaddress.Street = address.Street;
+            Existingaddress.ZipCode = address.ZipCode;
+
+            Succeeded = await _AddressService.SaveAsync(Existingaddress);
+            
             if(Succeeded)
-                DialogService.Close();
+                DialogService.Close(Existingaddress);
         }
     }
 }
