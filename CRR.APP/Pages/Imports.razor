@@ -41,11 +41,13 @@
                             <li>@e</li>
                         }
                     </ul>
-                    @if(err.FromAddressError){
-                        <RadzenButton Click=@(() => CreateAddress(err)) Text="Wijzig vertrek Address" ButtonStyle="ButtonStyle.Primary" />
-                    }
-                    @if(err.ToAddressError){
-                        <RadzenButton Click=@(() => CreateAddress(err, false)) Text="Wijzig aankomst Address" ButtonStyle="ButtonStyle.Primary" />
+                    @if(!err.Exists){
+                        @if(err.FromAddressError){
+                            <RadzenButton Click=@(() => CreateAddress(err)) Text="Wijzig vertrek Address" ButtonStyle="ButtonStyle.Primary" />
+                        }
+                        @if(err.ToAddressError){
+                            <RadzenButton Click=@(() => CreateAddress(err, false)) Text="Wijzig aankomst Address" ButtonStyle="ButtonStyle.Primary" />
+                        }
                     }
                 </li>
             }
@@ -226,6 +228,7 @@
         if(tripsByPlate.Any())
         {
             result.Errors.Add($"Trip: Trip met kenteken: {result.car.PlateNumber} en kilometerstanden: {result.Trip.DepartureMileage.ToString()} naar {result.Trip.ArrivalMileage.ToString()} bestaat al.");
+            result.Exists = true;
         }
 
 
@@ -334,6 +337,7 @@
         public Trip Trip { get; set; }
         public Address FromAddress { get; set; }
         public bool FromAddressError { get; set; } = false;
+        public bool Exists { get; set; } = false;
         public Address ToAddress { get; set; }
         public bool ToAddressError { get; set; } = false;
         public List<string> Errors { get; set; } = new();
