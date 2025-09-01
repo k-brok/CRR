@@ -258,7 +258,7 @@
     [JSInvokable]
     public void OnPositionReceived(GeolocationPosition position)
     {
-        var gesorteerd = AllAddresses
+        AllAddresses = AllAddresses
             .OrderBy(p =>
             {
                 double dLat = p.Latitude - position.Coords.Latitude;
