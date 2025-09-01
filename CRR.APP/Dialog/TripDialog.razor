@@ -136,9 +136,12 @@
             {
                 double dLat = p.Latitude - _GPS.Latitude;
                 double dLon = p.Longitude - _GPS.Longitude;
-                return dLat * dLat + dLon * dLon;
+                return Math.Sqrt(Math.Pow(dLat, 2) + Math.Pow(dLon, 2));
             })
             .ToList();
+        }
+        else{
+            AllAddresses = AllAddresses.OrderBy(A => A.Name).ToList();
         }
 
         await AutoFillValues();
