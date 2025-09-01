@@ -1,6 +1,6 @@
 @inject AddressService _AddressService
 @inject DialogService DialogService
- 
+@inject IGeolocationService _gps
 <RadzenStack>
     @if(IsEdit){
         <RadzenRow Gap="1rem">
@@ -41,6 +41,18 @@
                     </RadzenFormField>
                 </RadzenColumn>
             </RadzenRow>
+            <RadzenRow Gap="0">
+                <RadzenColumn Size="6">
+                    <RadzenFormField Text="Latitude" Style="width: 100%;">
+                        <RadzenNumeric @bind-Value=@AddressData.Latitude/>
+                    </RadzenFormField>
+                </RadzenColumn>
+                <RadzenColumn Size="6">
+                    <RadzenFormField Text="Longtitude" Style="width: 100%;">
+                        <RadzenNumeric @bind-Value=@AddressData.Longitude/>
+                    </RadzenFormField>
+                </RadzenColumn>
+            </RadzenRow>
         </RadzenRow>
     } else {
         @AddressData.Name
@@ -67,6 +79,7 @@
             ExistingAddresses = await _AddressService.GetAllAsync();
             ExistingAddresses = ExistingAddresses.OrderBy(A=>A.Name).ToList();
         }
+        _gps.GetCurrentPosition(this,nameof(OnPositionReceived));
         await base.OnInitializedAsync();
     }
     private async Task SaveAddress(Address address){
@@ -97,5 +110,14 @@
         else{
             AddressData = InitialValues;
         }
+    }
+    [JSInvokable]
+    public void OnPositionReceived(GeolocationPosition position)
+    {
+        if(AddressData.Longitude == 0 && AddressData.Latitude == 0){
+            AddressData.Longitude = position.Coords.Longitude;
+            AddressData.Latitude = position.Coords.Latitude;
+        }
+        StateHasChanged();
     }
 }

@@ -3,6 +3,7 @@
 @inject TripService _TripService
 @inject DefaultTripService _DefaultTripService
 @inject DialogService DialogService
+@inject IGeolocationService _gps
 
 <RadzenTemplateForm TItem="Trip" Data=@NewTrip Submit=@OnSubmit>
     <RadzenStack Gap="10px">    
@@ -128,6 +129,8 @@
             NewTrip.FromId = PreviousTrip.ToId;
         }
 
+        _gps.GetCurrentPosition(this,nameof(OnPositionReceived));
+
         await AutoFillValues();
 
         await base.OnInitializedAsync();
@@ -252,6 +255,20 @@
         }
         StateHasChanged();
     }
+    [JSInvokable]
+    public void OnPositionReceived(GeolocationPosition position)
+    {
+        var gesorteerd = AllAddresses
+            .OrderBy(p =>
+            {
+                double dLat = p.Latitude - position.Coords.Latitude;
+                double dLon = p.Longitude - position.Coords.Longitude;
+                return dLat * dLat + dLon * dLon;
+            })
+            .ToList();
+        StateHasChanged();
+    }
+    
     enum AddressChoise{
         From,
         to
