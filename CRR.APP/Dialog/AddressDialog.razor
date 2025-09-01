@@ -98,6 +98,8 @@
             Existingaddress.Number = address.Number;
             Existingaddress.Street = address.Street;
             Existingaddress.ZipCode = address.ZipCode;
+            Existingaddress.Latitude = address.Latitude;
+            Existingaddress.Longitude = address.Longitude;
 
             Succeeded = await _AddressService.SaveAsync(Existingaddress);
             
