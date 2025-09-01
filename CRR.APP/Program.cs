@@ -20,6 +20,8 @@ public class Program
         builder.Services.AddScoped<CarService>();
         builder.Services.AddScoped<DefaultTripService>();
 
+        builder.Services.AddScoped<GPSService>();
+
         builder.Services.AddGeolocationServices();
 
 		builder.Services.AddRadzenComponents();
