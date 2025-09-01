@@ -116,6 +116,7 @@
     private List<Address> AllAddresses {get; set;} = new List<Address>();
     private List<Car> AllCars {get; set;} = new List<Car>();
     protected override async Task OnInitializedAsync(){
+        _GPS.GetGPSLocation();
         Trip PreviousTrip = await _TripService.GetLatestAsync();
         AllAddresses = await _AddressService.GetAllAsync();
         AllCars = await _CarService.GetAllAsync();
