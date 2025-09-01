@@ -14,6 +14,7 @@ public static class DefaultTripExtensions
             ToId = DefaultTrip.ToId,
             DefaultMileage = DefaultTrip.DefaultMileage,
             PrivateMileage = DefaultTrip.PrivateMileage,
+            TripTime = DefaultTrip.TripTime,
             Type = DefaultTrip.Type.ToString()
         };
     }
@@ -30,6 +31,7 @@ public static class DefaultTripExtensions
             ToId = dto.ToId,
             DefaultMileage = dto.DefaultMileage,
             PrivateMileage = dto.PrivateMileage,
+            TripTime = dto.TripTime,
             Type = Converttype
         };
     }
@@ -47,6 +49,7 @@ public static class DefaultTripExtensions
             ToId = dto.ToId,
             DefaultMileage = dto.DefaultMileage,
             PrivateMileage = dto.PrivateMileage,
+            TripTime = dto.TripTime,
             Type = Converttype
         };
     }
