@@ -45,6 +45,8 @@ namespace CRR.API.Services
             existing.Name = updatedAddress.Name;
             existing.Street = updatedAddress.Street;
             existing.Number = updatedAddress.Number;
+            existing.Latitude = updatedAddress.Latitude;
+            existing.Longitude = updatedAddress.Longitude;
             existing.ZipCode = Regex.Replace(updatedAddress.ZipCode.ToUpper(), @"\s+", "");
             existing.Type = updatedAddress.Type;
 
