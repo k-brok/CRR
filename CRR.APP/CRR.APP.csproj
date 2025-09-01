@@ -12,6 +12,7 @@
     <PackageReference Include="Microsoft.AspNetCore.Components.WebAssembly.DevServer" Version="8.0.17" PrivateAssets="all" />
     <PackageReference Include="Radzen.Blazor" Version="7.1.4" />
     <ProjectReference Include="..\CRR.Shared\CRR.Shared.csproj" />
+    <PackageReference Include="Blazor.Geolocation.WebAssembly" Version="9.*" />
   </ItemGroup>
 
   <ItemGroup>

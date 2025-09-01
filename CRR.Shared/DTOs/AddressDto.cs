@@ -8,6 +8,8 @@ public class AddressDto
     public string Number { get; set; }
     public string ZipCode { get; set; }
     public string Type { get; set; } = "Business";
+    public double Latitude { get; set; }
+	public double Longitude { get; set; }
 }
 
 public class CreateAddressDto
@@ -17,5 +19,7 @@ public class CreateAddressDto
     public string Number { get; set; }
     public string ZipCode { get; set; }
     public string Type { get; set; } = "Business";
+    public double Latitude { get; set; }
+	public double Longitude { get; set; }
 }
 

@@ -14,6 +14,8 @@ public static class AddressExtensions
             Street = Address.Street,
             Number = Address.Number,
             ZipCode = Address.ZipCode,
+            Latitude = Address.Latitude,
+            Longitude = Address.Longitude,
             Type = Address.Type.ToString()
         };
     }
@@ -30,6 +32,8 @@ public static class AddressExtensions
             Street = dto.Street,
             Number = dto.Number,
             ZipCode = dto.ZipCode,
+            Latitude = dto.Latitude,
+            Longitude = dto.Longitude,
             Type = Converttype
         };
     }
@@ -47,6 +51,8 @@ public static class AddressExtensions
             Street = dto.Street,
             Number = dto.Number,
             ZipCode = dto.ZipCode,
+            Latitude = dto.Latitude,
+            Longitude = dto.Longitude,
             Type = Converttype
         };
     }
