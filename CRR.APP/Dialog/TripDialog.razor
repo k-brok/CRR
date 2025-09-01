@@ -3,7 +3,7 @@
 @inject TripService _TripService
 @inject DefaultTripService _DefaultTripService
 @inject DialogService DialogService
-@inject IGeolocationService _gps
+@inject GPSService _GPS
 @inject NotificationService NotificationService
 
 <RadzenTemplateForm TItem="Trip" Data=@NewTrip Submit=@OnSubmit>
@@ -130,7 +130,16 @@
             NewTrip.FromId = PreviousTrip.ToId;
         }
 
-        _gps.GetCurrentPosition(this,nameof(OnPositionReceived),nameof(OnPositionError));
+        if(_GPS.Latitude != 0 && _GPS.Longitude != 0){
+            AllAddresses = AllAddresses
+            .OrderBy(p =>
+            {
+                double dLat = p.Latitude - _GPS.Latitude;
+                double dLon = p.Longitude - _GPS.Longitude;
+                return dLat * dLat + dLon * dLon;
+            })
+            .ToList();
+        }
 
         await AutoFillValues();
 
@@ -254,29 +263,6 @@
             NewTrip.To = AllAddresses.FirstOrDefault(A=>A.ZipCode == TripAddress.ZipCode);
             NewTrip.ToId = AllAddresses.FirstOrDefault(A=>A.ZipCode == TripAddress.ZipCode).Id;
         }
-        StateHasChanged();
-    }
-    [JSInvokable]
-    public void OnPositionReceived(GeolocationPosition position)
-    {
-        AllAddresses = AllAddresses
-            .OrderBy(p =>
-            {
-                double dLat = p.Latitude - position.Coords.Latitude;
-                double dLon = p.Longitude - position.Coords.Longitude;
-                return dLat * dLat + dLon * dLon;
-            })
-            .ToList();
-        StateHasChanged();
-    }
-    [JSInvokable]
-    public void OnPositionError(GeolocationPositionError positionError)
-    {
-        NotificationService.Notify(new NotificationMessage{
-                Severity = NotificationSeverity.Error,
-                Summary = "GPS error!",
-                Detail = "Kan GPS locatie niet vinden!"
-            });
         StateHasChanged();
     }
     enum AddressChoise{
