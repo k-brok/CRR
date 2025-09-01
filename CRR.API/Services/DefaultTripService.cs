@@ -30,6 +30,14 @@ namespace CRR.API.Services
                 .FirstOrDefaultAsync(t => t.Id == id);
         }
 
+        public async Task<DefaultTrip?> GetByAddressesAsync(Guid from, Guid to)
+        {
+            return await _context.DefaultTrips
+                .Include(t => t.From)
+                .Include(t => t.To)
+                .FirstOrDefaultAsync(t => t.FromId == from && t.ToId == to);
+        }
+
         public async Task<DefaultTrip> CreateAsync(DefaultTrip defaultTrip)
         {
             _context.DefaultTrips.Add(defaultTrip);

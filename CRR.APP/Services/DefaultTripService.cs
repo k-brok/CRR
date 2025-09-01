@@ -21,6 +21,16 @@ public class DefaultTripService
         List<DefaultTrip> DefaultTripList = DefaultTripDtos.Select(t => t.ToEntity()).ToList();
         return DefaultTripList;
     }
+    public async Task<DefaultTrip?> GetFromAddresses(Guid From, Guid To)
+    {
+        var result = await _httpClient.GetAsync($"{Endpoint}/FromAddresses?from={From}&to={To}");
+        if (result.IsSuccessStatusCode)
+        {
+            DefaultTripDto tripdto = await result.Content.ReadFromJsonAsync<DefaultTripDto>();
+            return tripdto.ToEntity();
+        }
+        return null;
+    }
 
     public async Task<bool> CreateAsync(DefaultTrip defaultTrip)
     {

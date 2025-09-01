@@ -26,6 +26,12 @@ public static class DefaultTripEndpoints
             return DefaultTrip is not null ? Results.Ok(DefaultTrip.ToDto()) : Results.NotFound();
         });
 
+        group.MapGet("/FromAddresses", async (Guid from, Guid to, IDefaultTripService service) =>
+        {
+            var DefaultTrip = await service.GetByAddressesAsync(from,to);
+            return DefaultTrip is not null ? Results.Ok(DefaultTrip.ToDto()) : Results.NotFound();
+        });
+
         group.MapPost("/", async (CreateDefaultTripDto DefaultTrip, IDefaultTripService service) =>
         {
             var created = await service.CreateAsync(DefaultTrip.ToEntity());
