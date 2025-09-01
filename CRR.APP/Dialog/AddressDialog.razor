@@ -42,15 +42,18 @@
                 </RadzenColumn>
             </RadzenRow>
             <RadzenRow Gap="0">
-                <RadzenColumn Size="6">
+                <RadzenColumn Size="5">
                     <RadzenFormField Text="Latitude" Style="width: 100%;">
                         <RadzenNumeric @bind-Value=@AddressData.Latitude/>
                     </RadzenFormField>
                 </RadzenColumn>
-                <RadzenColumn Size="6">
+                <RadzenColumn Size="5">
                     <RadzenFormField Text="Longtitude" Style="width: 100%;">
                         <RadzenNumeric @bind-Value=@AddressData.Longitude/>
                     </RadzenFormField>
+                </RadzenColumn>
+                <RadzenColumn Size="2">
+                    <RadzenButton Click=GetGPS Icon="add_location"/>
                 </RadzenColumn>
             </RadzenRow>
         </RadzenRow>
@@ -79,7 +82,6 @@
             ExistingAddresses = await _AddressService.GetAllAsync();
             ExistingAddresses = ExistingAddresses.OrderBy(A=>A.Name).ToList();
         }
-        _gps.GetCurrentPosition(this,nameof(OnPositionReceived));
         await base.OnInitializedAsync();
     }
     private async Task SaveAddress(Address address){
@@ -110,6 +112,9 @@
         else{
             AddressData = InitialValues;
         }
+    }
+    public void GetGPS(){
+        _gps.GetCurrentPosition(this,nameof(OnPositionReceived));
     }
     [JSInvokable]
     public void OnPositionReceived(GeolocationPosition position)
