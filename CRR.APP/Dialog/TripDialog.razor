@@ -4,6 +4,7 @@
 @inject DefaultTripService _DefaultTripService
 @inject DialogService DialogService
 @inject IGeolocationService _gps
+@inject NotificationService NotificationService
 
 <RadzenTemplateForm TItem="Trip" Data=@NewTrip Submit=@OnSubmit>
     <RadzenStack Gap="10px">    
@@ -129,7 +130,7 @@
             NewTrip.FromId = PreviousTrip.ToId;
         }
 
-        _gps.GetCurrentPosition(this,nameof(OnPositionReceived));
+        _gps.GetCurrentPosition(this,nameof(OnPositionReceived),nameof(OnPositionError));
 
         await AutoFillValues();
 
@@ -268,7 +269,16 @@
             .ToList();
         StateHasChanged();
     }
-    
+    [JSInvokable]
+    public void OnPositionError(GeolocationPositionError positionError)
+    {
+        NotificationService.Notify(new NotificationMessage{
+                Severity = NotificationSeverity.Error,
+                Summary = "GPS error!",
+                Detail = "Kan GPS locatie niet vinden!"
+            });
+        StateHasChanged();
+    }
     enum AddressChoise{
         From,
         to
