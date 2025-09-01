@@ -35,6 +35,7 @@
     {
         DialogService.OnClose += Close;
         addresses = await _AddressService.GetAllAsync();
+        addresses = addresses.OrderBy(A=> A.Name).ToList();
     }
 
     async Task OpenAddress(Address AddressData)
