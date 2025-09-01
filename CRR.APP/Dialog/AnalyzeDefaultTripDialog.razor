@@ -35,6 +35,11 @@
                             <RadzenNumeric @bind-Value="defaultTrip.PrivateMileage" Style="width: 100%;" />
                         </RadzenStack>
 
+                        <RadzenStack Orientation=Orientation.Vertical Gap="2px">
+                            <RadzenLabel Text="Gem. tijd" />
+                            <RadzenTimeSpanPicker @bind-Value="defaultTrip.TripTime" Style="width: 100%;" />
+                        </RadzenStack>
+
                         <RadzenButton Icon="save" Text="Opslaan"
                                     Click="@(args => AddNewDefaultTrip(defaultTrip))"
                                     Style="width: 100%;" ButtonStyle="ButtonStyle.Primary" />
@@ -82,6 +87,15 @@
 
                 matchingDefaultTrip.DefaultMileage = (int)tripsInGroup.Average(t => t.DefaultMileage);
                 matchingDefaultTrip.PrivateMileage = (int)tripsInGroup.Average(t => t.PrivateMileage);
+                
+                if(matchingDefaultTrip.DefaultMileage == matchingDefaultTrip.PrivateMileage)
+                    matchingDefaultTrip.Type = TripType.Private;
+                
+                var averageTicks = tripsInGroup
+                    .Select(x => (x.Arrival - x.Departure).Ticks) // verschil in ticks
+                    .Average();
+                var timespan = TimeSpan.FromTicks((long)averageTicks);
+                matchingDefaultTrip.TripTime =  TimeSpan.FromSeconds( Math.Round( timespan.TotalSeconds));
 
                 NewDefaultTrips.Add(matchingDefaultTrip);
             }
