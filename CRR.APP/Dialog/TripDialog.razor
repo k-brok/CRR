@@ -1,6 +1,7 @@
 @inject AddressService _AddressService
 @inject CarService _CarService
 @inject TripService _TripService
+@inject DefaultTripService _DefaultTripService
 @inject DialogService DialogService
 
 <RadzenTemplateForm TItem="Trip" Data=@NewTrip Submit=@OnSubmit>
@@ -131,31 +132,69 @@
 
         await base.OnInitializedAsync();
     }
-    private async Task AutoFillValues(){
-        FromTitle = "";
-        ToTitle = "";
-        if(NewTrip.From != null){
-            FromTitle += NewTrip.From.Name;
-            if(NewTrip.DepartureMileage != 0)
-                FromTitle += "  (" + NewTrip.DepartureMileage.ToString() + " km)";
-        }
-        if(NewTrip.To != null){
-            ToTitle += NewTrip.To.Name;
-            if(NewTrip.ArrivalMileage != 0)
-                ToTitle += "  (" + NewTrip.ArrivalMileage.ToString() + " km)";
+    private async Task AutoFillValues()
+    {
+        FromTitle = BuildTitle(NewTrip.From?.Name, NewTrip.DepartureMileage);
+        ToTitle   = BuildTitle(NewTrip.To?.Name, NewTrip.ArrivalMileage);
+
+        if (NewTrip.From != null && NewTrip.To != null)
+        {
+            await ApplyDefaultTripValuesAsync(NewTrip);
         }
 
-        Console.WriteLine(NewTrip.Arrival);
-        if(NewTrip.Arrival == DateTime.MinValue)
-            NewTrip.Arrival = DateTime.Now;
-
-        if(NewTrip.ArrivalMileage == 0 && NewTrip.DepartureMileage != 0){
-            NewTrip.ArrivalMileage = NewTrip.DepartureMileage + 9;
-        }
+        // Alleen invullen als de default trip niks heeft gedaan
+        EnsureArrivalDate();
+        //EnsureFallbackArrivalMileage();
 
         await Task.Delay(50);
         StateHasChanged();
     }
+
+    private static string BuildTitle(string? locationName, int mileage)
+    {
+        if (string.IsNullOrWhiteSpace(locationName))
+            return string.Empty;
+
+        return mileage > 0 
+            ? $"{locationName}  ({mileage} km)" 
+            : locationName;
+    }
+
+    private async Task ApplyDefaultTripValuesAsync(Trip newTrip)
+    {
+        var foundDefaultTrip = await _DefaultTripService.GetFromAddresses(newTrip.From.Id, newTrip.To.Id);
+
+        if (foundDefaultTrip == null)
+            return;
+
+        if (newTrip.ArrivalMileage == 0 && newTrip.DepartureMileage != 0)
+        {
+            newTrip.ArrivalMileage = newTrip.DepartureMileage + foundDefaultTrip.DefaultMileage;
+        }
+
+        if (newTrip.Departure == DateTime.MinValue)
+        {
+            newTrip.Departure = newTrip.Arrival - foundDefaultTrip.TripTime;
+        }
+    }
+
+    private void EnsureArrivalDate()
+    {
+        if (NewTrip.Arrival == DateTime.MinValue)
+        {
+            NewTrip.Arrival = DateTime.Now;
+        }
+    }
+
+    private void EnsureFallbackArrivalMileage()
+    {
+        // alleen fallback doen als er nog steeds geen ArrivalMileage staat
+        if (NewTrip.ArrivalMileage == 0 && NewTrip.DepartureMileage != 0)
+        {
+            NewTrip.ArrivalMileage = NewTrip.DepartureMileage + 9;
+        }
+    }
+
     private async Task UpdateFromAddress(Address address){
         NewTrip.From = address;
         await AutoFillValues();
