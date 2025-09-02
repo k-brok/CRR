@@ -180,6 +180,8 @@
     private async Task ApplyDefaultTripValuesAsync(Trip newTrip)
     {
         var foundDefaultTrip = await _DefaultTripService.GetFromAddresses(newTrip.From.Id, newTrip.To.Id);
+        if (foundDefaultTrip == null)
+            foundDefaultTrip = await _DefaultTripService.GetFromAddresses(newTrip.To.Id, newTrip.From.Id);
 
         if (foundDefaultTrip == null)
             return;
