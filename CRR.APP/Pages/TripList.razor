@@ -1,99 +1,145 @@
 @page "/TripList"
+@using System.Text.Json
 @inject AddressService _AddressService
 @inject TripService _TripService
-@using System.Text.Json
+
 <PageTitle>Ritten overzicht</PageTitle>
 
-<RadzenButton Text="Controleer" Click=ProccessTrips Disabled=CheckRunning />
+<div class="toolbar" style="display:flex; gap:.75rem; align-items:center; margin-bottom:.5rem;">
+    <RadzenButton Text="Controleer" Click=@ProccessTrips Disabled=@CheckRunning />
+    <RadzenDropDown @bind-Value=@SelectedYear Data=@Years Placeholder="Filter op jaar" AllowClear="true" Style="width:12rem" />
+    @if (CheckRunning)
+    {
+        <RadzenProgressBarCircular Value="100" ShowValue="false" Mode="ProgressBarMode.Indeterminate" Style="width: 200px" />
+    }
+</div>
 
-<RadzenDataGrid TItem="Trip" Data=TripListData>
+<RadzenDataGrid TItem="Trip"
+                Data=@VisibleTrips
+                AllowFiltering="true"
+                FilterMode="FilterMode.Advanced"
+                AllowSorting="true"
+                AllowPaging="false"
+                ColumnWidth="160px"
+                Density=Density.Compact
+                Style="height: calc(100vh - 200px);">
     <Columns>
-        <RadzenDataGridColumn Property="@nameof(Trip.Departure)" Title="Datum" />
+        <RadzenDataGridColumn Property=@nameof(Trip.Departure) Title="Datum" Width="10rem" />
         <RadzenDataGridColumn Title="Van">
             <Columns>
-                <RadzenDataGridColumn Title="Adres">
+                <RadzenDataGridColumn Title="Adres" Width="260px">
                     <Template Context="trip">
-                        @AllAddresses.FirstOrDefault(A=> A.Id == trip.FromId).Name
+                        @AddressName(trip.FromId)
                     </Template>
                 </RadzenDataGridColumn>
-                <RadzenDataGridColumn Property="@nameof(Trip.DepartureMileage)" Title="Kilometerstand" />
+                <RadzenDataGridColumn Property=@nameof(Trip.DepartureMileage) Title="Kilometerstand" Width="10rem" TextAlign="TextAlign.Right" />
             </Columns>
         </RadzenDataGridColumn>
         <RadzenDataGridColumn Title="Naar">
             <Columns>
-                <RadzenDataGridColumn Title="naar">
+                <RadzenDataGridColumn Title="Adres" Width="260px">
                     <Template Context="trip">
-                        @AllAddresses.FirstOrDefault(A=> A.Id == trip.ToId).Name
+                        @AddressName(trip.ToId)
                     </Template>
                 </RadzenDataGridColumn>
-                <RadzenDataGridColumn Property="@nameof(Trip.ArrivalMileage)" Title="Kilometerstand" />
+                <RadzenDataGridColumn Property=@nameof(Trip.ArrivalMileage) Title="Kilometerstand" Width="10rem" TextAlign="TextAlign.Right" />
             </Columns>
         </RadzenDataGridColumn>
         <RadzenDataGridColumn Title="Kilometers">
             <Columns>
-                <RadzenDataGridColumn Title="Zakelijk">
+                <RadzenDataGridColumn Title="Zakelijk" Width="8rem" TextAlign="TextAlign.Right">
                     <Template Context="trip">
                         @(trip.ArrivalMileage - trip.DepartureMileage - trip.PrivateMileage)
                     </Template>
                 </RadzenDataGridColumn>
-                <RadzenDataGridColumn Property="@nameof(Trip.PrivateMileage)" Title="privé" />
+                <RadzenDataGridColumn Property=@nameof(Trip.PrivateMileage) Title="Privé" Width="8rem" TextAlign="TextAlign.Right" />
             </Columns>
         </RadzenDataGridColumn>
-        <RadzenDataGridColumn Title="Foutmeldingen" Visible=CheckHasRun>
+        <RadzenDataGridColumn Title="Foutmeldingen" Visible=@CheckHasRun Width="340px">
             <Template Context="trip">
-                <ul>
-                    @foreach(string error in trip.errors){
-                        <li>
-                            @error
-                        </li>
-                    }
-                </ul>
+                @if (trip.errors?.Any() == true)
+                {
+                    <ul style="margin:0; padding-left:1rem">
+                        @foreach (var error in trip.errors)
+                        {
+                            <li>@error</li>
+                        }
+                    </ul>
+                }
             </Template>
         </RadzenDataGridColumn>
     </Columns>
 </RadzenDataGrid>
 
-@code{
-    bool CheckRunning {get; set;} = false;
-    bool CheckHasRun {get; set;} = false;
-    List<Trip> TripListData {get; set;}
-    List<Address> AllAddresses {get; set;}
-    protected async override Task OnInitializedAsync(){
+@code {
+    bool CheckRunning { get; set; }
+    bool CheckHasRun { get; set; }
+
+    List<Trip> TripListData { get; set; } = new();
+    List<Address> AllAddresses { get; set; } = new();
+
+    // Jaar-filter (zoals gevraagd)
+    int? SelectedYear { get; set; }
+    List<int> Years { get; set; } = new();
+
+    // Snelle lookup i.p.v. FirstOrDefault in de template
+    Dictionary<Guid, Address> AddressById { get; set; } = new();
+
+    // View (jaarfilter + sortering)
+    IEnumerable<Trip> VisibleTrips =>
+        (SelectedYear is null ? TripListData : TripListData.Where(t => t.Departure.Year == SelectedYear))
+        .OrderBy(t => t.Departure);
+
+    protected override async Task OnInitializedAsync()
+    {
         TripListData = await _TripService.GetAllAsync();
         AllAddresses = await _AddressService.GetAllAsync();
-        TripListData = TripListData.OrderBy(T=> T.Departure).ToList();
+
+        // Sorteren en years vullen (recent eerst)
+        TripListData = TripListData.OrderBy(t => t.Departure).ToList();
+        Years = TripListData.Select(t => t.Departure.Year).Distinct().OrderByDescending(y => y).ToList();
+
+        AddressById = AllAddresses.GroupBy(a => a.Id).ToDictionary(g => g.Key, g => g.First());
         await base.OnInitializedAsync();
     }
-    async Task ProccessTrips(){
+
+    async Task ProccessTrips()
+    {
         CheckRunning = true;
+        StateHasChanged();
 
-        List<CarTrip> CarTrips = new List<CarTrip>();
-        CarTrip? CurrentCar = null;
-
-        foreach(Trip trip in TripListData.OrderBy(T=> T.Departure)){
-            CurrentCar = CarTrips.FirstOrDefault(C=> C.CarId == trip.CarId);
-            if(CurrentCar == null)
+        var carTrips = new List<CarTrip>();
+        foreach (var trip in TripListData.OrderBy(t => t.Departure))
+        {
+            var currentCar = carTrips.FirstOrDefault(c => c.CarId == trip.CarId);
+            if (currentCar is null)
             {
-                CurrentCar = new CarTrip{
-                    CarId = trip.CarId
-                };
-                CarTrips.Add(CurrentCar);
+                currentCar = new CarTrip { CarId = trip.CarId };
+                carTrips.Add(currentCar);
             }
-            if(CurrentCar.LastTrip != null){
-                if(CurrentCar.LastTrip.ArrivalMileage != trip.DepartureMileage)
-                    trip.errors.Add("Vertrek kilometers is niet gelijk aan voorgaande rit.");
+
+            if (currentCar.LastTrip != null &&
+                currentCar.LastTrip.ArrivalMileage != trip.DepartureMileage)
+            {
+                trip.errors ??= new List<string>();
+                trip.errors.Add("Vertrek-kilometers komen niet overeen met de voorgaande rit.");
             }
-            CurrentCar.LastTrip = trip;
+
+            currentCar.LastTrip = trip;
         }
 
-        Task.Delay(50);
+        await Task.Delay(50);
         CheckRunning = false;
         CheckHasRun = true;
         StateHasChanged();
     }
 
-    class CarTrip{
-        public Trip? LastTrip {get; set;} = null;
-        public Guid CarId {get; set;}
+    string AddressName(Guid id) =>
+        AddressById.TryGetValue(id, out var a) ? (a?.Name ?? "(onbekend)") : "(onbekend)";
+
+    class CarTrip
+    {
+        public Trip? LastTrip { get; set; }
+        public Guid CarId { get; set; }
     }
 }
