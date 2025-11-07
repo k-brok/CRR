@@ -34,8 +34,3 @@ jobs:
 
       - name: Push Docker image
         run: docker push chunkk/crr-api:latest
-      
-      - name: "webhook"
-        uses: joelwmale/webhook-action@2.1.0
-        with:
-            url: https://portainer.familiebrok.nl/api/stacks/webhooks/cd5de04c-dc3f-42e9-ae35-cf750abd9770
