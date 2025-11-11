@@ -41,6 +41,7 @@ public static class TripExtensions
     {
         return new Trip
         {
+            Id = dto.Id,
             FromId = dto.FromId,
             ToId = dto.ToId,
             Departure = dto.Departure,

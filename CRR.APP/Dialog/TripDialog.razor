@@ -6,10 +6,10 @@
 @inject GPSService _GPS
 @inject NotificationService NotificationService
 
-<RadzenTemplateForm TItem="Trip" Data=@NewTrip Submit=@OnSubmit>
+<RadzenTemplateForm TItem="Trip" Data=@trip Submit=@OnSubmit>
     <RadzenStack Gap="10px">    
-        <RadzenFieldset AllowCollapse="true" ExpandTitle="Expand Departure." CollapseTitle="Collapse Departure."
-                    ExpandAriaLabel="Expand the list of Departure." CollapseAriaLabel="Collapse the list of Departure." Collapsed=true >
+        <RadzenFieldset AllowCollapse="!IsEditMode" ExpandTitle="Expand Departure." CollapseTitle="Collapse Departure."
+                    ExpandAriaLabel="Expand the list of Departure." CollapseAriaLabel="Collapse the list of Departure." Collapsed=!IsEditMode >
             <HeaderTemplate>
                 <RadzenStack Orientation="Orientation.Horizontal" Gap="0.25rem">
                     <RadzenIcon Icon="account_box" /><b>Vertrek: </b>@FromTitle
@@ -20,7 +20,7 @@
                     <RadzenRow >
                         <RadzenColumn Size="10">
                             <RadzenFormField Text="Vertrek address" Style="Width: 100%" Variant=Variant.Flat>
-                                <RadzenDropDown TValue=Address Value=@NewTrip.From Change=@(args => UpdateFromAddress((Address) args)) TextProperty="@nameof(Address.Name)" Data=@AllAddresses Name="DropDownFrom" />
+                                <RadzenDropDown TValue=Address Value=@trip.From Change=@(args => UpdateFromAddress((Address) args)) TextProperty="@nameof(Address.Name)" Data=@AllAddresses Name="DropDownFrom" />
                                 <RadzenRequiredValidator Component="DropDownFrom" Text="Een vertrek adres is verplicht" Popup=true Style="position: absolute"/>
                             </RadzenFormField>
                         </RadzenColumn>
@@ -30,11 +30,11 @@
                     </RadzenRow>
                     
                     <RadzenFormField Text="Kilometerstand vertrek" Variant=Variant.Flat>
-                        <RadzenNumeric TValue=int Value=@NewTrip.DepartureMileage Change=@(args => UpdateDepartureMileage((int) args)) Name="DepartureMileage"/>
+                        <RadzenNumeric TValue=int Value=@trip.DepartureMileage Change=@(args => UpdateDepartureMileage((int) args)) Name="DepartureMileage"/>
                         <RadzenNumericRangeValidator Component="DepartureMileage" Min="1" opup=true Text="Kilometerstand moet minimaal 1km zijn!" Style="position: absolute" />
                     </RadzenFormField>
                     <RadzenFormField Text="Vertrek tijd" Variant=Variant.Flat>
-                        <RadzenDatePicker TValue=DateTime Value=@NewTrip.Departure Change="@(args => UpdateDepartureTime((DateTime) args))" ShowTime="true" ShowSeconds="true" HoursStep="1" MinutesStep="5"DateFormat="dd-MM-yyyy HH:mm" Name="Vertrektijd" />
+                        <RadzenDatePicker TValue=DateTime Value=@trip.Departure Change="@(args => UpdateDepartureTime((DateTime) args))" ShowTime="true" ShowSeconds="true" HoursStep="1" MinutesStep="5"DateFormat="dd-MM-yyyy HH:mm" Name="Vertrektijd" />
                         <RadzenRequiredValidator Component="Vertrektijd" Text="Vertrekijd is verplicht!" Popup=true Style="position: absolute"/>
                     </RadzenFormField>
                 </RadzenStack>
@@ -42,7 +42,7 @@
             <SummaryTemplate>
                 <RadzenStack>
                     <RadzenFormField Text="Vertrek tijd" Variant=Variant.Flat>
-                        <RadzenDatePicker TValue=DateTime Value=@NewTrip.Departure Change="@(args => UpdateDepartureTime((DateTime) args))" ShowTime="true" ShowSeconds="true" HoursStep="1" MinutesStep="5"DateFormat="dd-MM-yyyy HH:mm" Name="Vertrektijd" />
+                        <RadzenDatePicker TValue=DateTime Value=@trip.Departure Change="@(args => UpdateDepartureTime((DateTime) args))" ShowTime="true" ShowSeconds="true" HoursStep="1" MinutesStep="5"DateFormat="dd-MM-yyyy HH:mm" Name="Vertrektijd" />
                         <RadzenRequiredValidator Component="Vertrektijd" Text="Vertrekijd is verplicht!" Popup=true Style="position: absolute"/>
                     </RadzenFormField>
                 </RadzenStack>
@@ -60,7 +60,7 @@
                     <RadzenRow >
                         <RadzenColumn Size="10">
                             <RadzenFormField Text="Aankomst address" Style="Width: 100%" Variant=Variant.Flat>
-                                <RadzenDropDown Value=@NewTrip.To Change=@(args => UpdateToAddress((Address) args)) TextProperty="@nameof(Address.Name)" Data=@AllAddresses Name="DropDownTo" />
+                                <RadzenDropDown Value=@trip.To Change=@(args => UpdateToAddress((Address) args)) TextProperty="@nameof(Address.Name)" Data=@AllAddresses Name="DropDownTo" />
                                 <RadzenRequiredValidator Component="DropDownTo" Text="First name is required" Popup=true Style="position: absolute"/>
                             </RadzenFormField>
                         </RadzenColumn>
@@ -69,11 +69,11 @@
                         </RadzenColumn>
                     </RadzenRow>
                     <RadzenFormField Text="Kilometerstand aankomst" Variant=Variant.Flat>
-                        <RadzenNumeric TValue=int Value=@NewTrip.ArrivalMileage Name="ArrivalMileage" Change=@(args => UpdateArrivalMileage((int)args)) />
-                        <RadzenNumericRangeValidator Component="ArrivalMileage" Min=@NewTrip.DepartureMileage Popup=true Text="Kilometerstand bij aankomst moet groter dan bij vertrek zijn!" Style="position: absolute" />
+                        <RadzenNumeric TValue=int Value=@trip.ArrivalMileage Name="ArrivalMileage" Change=@(args => UpdateArrivalMileage((int)args)) />
+                        <RadzenNumericRangeValidator Component="ArrivalMileage" Min=@trip.DepartureMileage Popup=true Text="Kilometerstand bij aankomst moet groter dan bij vertrek zijn!" Style="position: absolute" />
                     </RadzenFormField>
                     <RadzenFormField Text="Aankomst tijd" Variant=Variant.Flat>
-                        <RadzenDatePicker TValue=DateTime Value=@NewTrip.Arrival Change="@(args => UpdateArrivalTime((DateTime) args))" ShowTime="true" ShowSeconds="true" HoursStep="1" MinutesStep="5"DateFormat="dd-MM-yyyy HH:mm" Name="aankomststijd" />
+                        <RadzenDatePicker TValue=DateTime Value=@trip.Arrival Change="@(args => UpdateArrivalTime((DateTime) args))" ShowTime="true" ShowSeconds="true" HoursStep="1" MinutesStep="5"DateFormat="dd-MM-yyyy HH:mm" Name="aankomststijd" />
                         <RadzenRequiredValidator Component="aankomststijd" Text="Aankomststijd is verplicht!" Popup=true Style="position: absolute"/>
                     </RadzenFormField>
                 </RadzenStack>
@@ -88,13 +88,13 @@
             <ChildContent>
                 <RadzenStack>
                     <RadzenFormField Text="Opmerking" Variant=Variant.Flat>
-                        <RadzenTextArea  @bind-Value=NewTrip.Remark />
+                        <RadzenTextArea  @bind-Value=trip.Remark />
                     </RadzenFormField>
                     <RadzenRow>
                         <RadzenColumn Size="8">
                             <RadzenFormField Text="Prive Kilometers" Variant=Variant.Flat>
                                 <RadzenNumeric TValue=int Value=@PrivateMileages Disabled=@FullPrivate Style="width: 100%;" Change=@(args => UpdatePrivateMileages((int)args)) Name="PrivateMileages"/>
-                                <RadzenNumericRangeValidator Visible=@(!FullPrivate) Component="PrivateMileages" Max=@(NewTrip.ArrivalMileage - NewTrip.DepartureMileage) Popup=true Text="Privekilometers mogen niet groter zijn dan de totale kilometers!" Style="position: absolute" />
+                                <RadzenNumericRangeValidator Visible=@(!FullPrivate) Component="PrivateMileages" Max=@(trip.ArrivalMileage - trip.DepartureMileage) Popup=true Text="Privekilometers mogen niet groter zijn dan de totale kilometers!" Style="position: absolute" />
                             </RadzenFormField>
                         </RadzenColumn>
                         <RadzenColumn Size="4">
@@ -109,26 +109,41 @@
 </RadzenTemplateForm>
 @code{
     private string FromTitle{get; set;}
+    private bool IsEditMode{get; set;} = true;
     private string ToTitle{get; set;}
     private bool FullPrivate{get; set;} = false;
     private int PrivateMileages{get; set;}
-    private Trip NewTrip {get; set;} = new Trip();
+    [Parameter]
+    public Trip? trip {get; set;} = null;
     private List<Address> AllAddresses {get; set;} = new List<Address>();
     private List<Car> AllCars {get; set;} = new List<Car>();
     protected override async Task OnInitializedAsync(){
         _GPS.GetGPSLocation();
+
         Trip PreviousTrip = await _TripService.GetLatestAsync();
         AllAddresses = await _AddressService.GetAllAsync();
         AllCars = await _CarService.GetAllAsync();
 
-        Car defaulcar  = await _CarService.GetDefaultAsync();
-        NewTrip.Car = defaulcar;
-        NewTrip.CarId = defaulcar.Id;
+        if(trip == null){
+            trip = new Trip();
+            IsEditMode = false;
+        
+            Car defaulcar  = await _CarService.GetDefaultAsync();
+            trip.Car = defaulcar;
+            trip.CarId = defaulcar.Id;
 
-        if(PreviousTrip != null){
-            NewTrip.DepartureMileage = PreviousTrip.ArrivalMileage;
-            NewTrip.From = await _AddressService.GetAsync(PreviousTrip.ToId);
-            NewTrip.FromId = PreviousTrip.ToId;
+            if(PreviousTrip != null){
+                trip.DepartureMileage = PreviousTrip.ArrivalMileage;
+                trip.From = await _AddressService.GetAsync(PreviousTrip.ToId);
+                trip.FromId = PreviousTrip.ToId;
+            }
+
+            await AutoFillValues();
+        }
+        else{
+            IsEditMode = true;
+            trip.From = AllAddresses.FirstOrDefault(A=> A.Id == trip.FromId);
+            trip.To = AllAddresses.FirstOrDefault(A=> A.Id == trip.ToId);
         }
 
         if(_GPS.Latitude != 0 && _GPS.Longitude != 0){
@@ -145,23 +160,19 @@
             AllAddresses = AllAddresses.OrderBy(A => A.Name).ToList();
         }
 
-        await AutoFillValues();
-
         await base.OnInitializedAsync();
     }
     private async Task AutoFillValues()
     {
-        FromTitle = BuildTitle(NewTrip.From?.Name, NewTrip.DepartureMileage);
-        ToTitle   = BuildTitle(NewTrip.To?.Name, NewTrip.ArrivalMileage);
+        FromTitle = BuildTitle(trip.From?.Name, trip.DepartureMileage);
+        ToTitle   = BuildTitle(trip.To?.Name, trip.ArrivalMileage);
 
-        if (NewTrip.From != null && NewTrip.To != null)
+        if (trip.From != null && trip.To != null && !IsEditMode)
         {
-            await ApplyDefaultTripValuesAsync(NewTrip);
+            await ApplyDefaultTripValuesAsync(trip);
         }
 
-        // Alleen invullen als de default trip niks heeft gedaan
         EnsureArrivalDate();
-        //EnsureFallbackArrivalMileage();
 
         await Task.Delay(50);
         StateHasChanged();
@@ -199,48 +210,48 @@
 
     private void EnsureArrivalDate()
     {
-        if (NewTrip.Arrival == DateTime.MinValue)
+        if (trip.Arrival == DateTime.MinValue)
         {
-            NewTrip.Arrival = DateTime.Now;
+            trip.Arrival = DateTime.Now;
         }
     }
 
     private void EnsureFallbackArrivalMileage()
     {
         // alleen fallback doen als er nog steeds geen ArrivalMileage staat
-        if (NewTrip.ArrivalMileage == 0 && NewTrip.DepartureMileage != 0)
+        if (trip.ArrivalMileage == 0 && trip.DepartureMileage != 0)
         {
-            NewTrip.ArrivalMileage = NewTrip.DepartureMileage + 9;
+            trip.ArrivalMileage = trip.DepartureMileage + 9;
         }
     }
 
     private async Task UpdateFromAddress(Address address){
-        NewTrip.From = address;
+        trip.From = address;
         await AutoFillValues();
     }
     private async Task UpdateToAddress(Address address){
-        NewTrip.To = address;
+        trip.To = address;
         await AutoFillValues();
     }
     private async Task UpdateDepartureMileage(int DepartureMileage){
-        NewTrip.DepartureMileage = DepartureMileage;
+        trip.DepartureMileage = DepartureMileage;
         await AutoFillValues();
     }
     private async Task UpdateArrivalMileage(int ArrivalMileage){
-        NewTrip.ArrivalMileage = ArrivalMileage;
+        trip.ArrivalMileage = ArrivalMileage;
         await AutoFillValues();
     }
     private async Task UpdateDepartureTime(DateTime DepartureTime)
     {
-        NewTrip.Departure = DepartureTime;
+        trip.Departure = DepartureTime;
         await AutoFillValues();
     }
     private async Task UpdateArrivalTime(DateTime ArrivalTime){
-        NewTrip.Arrival = ArrivalTime;
+        trip.Arrival = ArrivalTime;
         await AutoFillValues();
     }
     private async Task UpdatePrivateMileages(int PrivateMileages){
-        NewTrip.PrivateMileage = PrivateMileages;
+        trip.PrivateMileage = PrivateMileages;
         await AutoFillValues();
     }
     async Task OnSubmit(Trip model){
@@ -252,7 +263,13 @@
         } else{
             model.PrivateMileage = PrivateMileages;
         }
-        await _TripService.CreateAsync(model);
+
+        if(IsEditMode)
+            await _TripService.UpdateAsync(model.Id, model);
+        else{
+            await _TripService.CreateAsync(model);
+        }
+        
         DialogService.Close();
     }
     async Task CreateAddress(Address AddressData,AddressChoise Choise)
@@ -262,12 +279,12 @@
                new DialogOptions() { Width = "700px", Height = "520px" });
         AllAddresses = await _AddressService.GetAllAsync();
         if(Choise == AddressChoise.From){
-            NewTrip.From = AllAddresses.FirstOrDefault(A=>A.ZipCode == TripAddress.ZipCode);
-            NewTrip.FromId = AllAddresses.FirstOrDefault(A=>A.ZipCode == TripAddress.ZipCode).Id;
+            trip.From = AllAddresses.FirstOrDefault(A=>A.ZipCode == TripAddress.ZipCode);
+            trip.FromId = AllAddresses.FirstOrDefault(A=>A.ZipCode == TripAddress.ZipCode).Id;
         }
         else{
-            NewTrip.To = AllAddresses.FirstOrDefault(A=>A.ZipCode == TripAddress.ZipCode);
-            NewTrip.ToId = AllAddresses.FirstOrDefault(A=>A.ZipCode == TripAddress.ZipCode).Id;
+            trip.To = AllAddresses.FirstOrDefault(A=>A.ZipCode == TripAddress.ZipCode);
+            trip.ToId = AllAddresses.FirstOrDefault(A=>A.ZipCode == TripAddress.ZipCode).Id;
         }
         StateHasChanged();
     }
