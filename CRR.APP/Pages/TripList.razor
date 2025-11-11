@@ -90,6 +90,8 @@
 
     // Snelle lookup i.p.v. FirstOrDefault in de template
     Dictionary<Guid, Address> AddressById { get; set; } = new();
+    string AddressName(Guid id) =>
+        AddressById.TryGetValue(id, out var a) ? (a?.Name ?? "(onbekend)") : "(onbekend)";
 
     // View (jaarfilter + sortering)
     IEnumerable<Trip> VisibleTrips =>
