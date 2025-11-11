@@ -167,7 +167,7 @@
         FromTitle = BuildTitle(trip.From?.Name, trip.DepartureMileage);
         ToTitle   = BuildTitle(trip.To?.Name, trip.ArrivalMileage);
 
-        if (trip.From != null && trip.To != null)
+        if (trip.From != null && trip.To != null && !IsEditMode)
         {
             await ApplyDefaultTripValuesAsync(trip);
         }
@@ -263,7 +263,13 @@
         } else{
             model.PrivateMileage = PrivateMileages;
         }
-        await _TripService.CreateAsync(model);
+
+        if(IsEditMode)
+            await _TripService.UpdateAsync(model.Id, model);
+        else{
+            await _TripService.CreateAsync(model);
+        }
+        
         DialogService.Close();
     }
     async Task CreateAddress(Address AddressData,AddressChoise Choise)
