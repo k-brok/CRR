@@ -257,8 +257,9 @@
         trip.Arrival = ArrivalTime;
         await AutoFillValues();
     }
-    private async Task UpdatePrivateMileages(int PrivateMileages){
-        trip.PrivateMileage = PrivateMileages;
+    private async Task UpdatePrivateMileages(int internalPrivateMileages){
+        trip.PrivateMileage = internalPrivateMileages;
+        PrivateMileages = internalPrivateMileages;
         await AutoFillValues();
     }
     async Task OnSubmit(Trip model){
