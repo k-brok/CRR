@@ -37,6 +37,12 @@ public class TripService
         return response.IsSuccessStatusCode;
     }
 
+    public async Task<bool> UpdateAsync(Guid id, Trip trip)
+    {
+        var response = await _httpClient.PutAsJsonAsync($"{Endpoint}/{id}", trip.ToDto());
+        return response.IsSuccessStatusCode;
+    }
+
     public async Task<Trip> GetLatestAsync()
     {
         var response = await _httpClient.GetAsync(Endpoint + "/latest");
