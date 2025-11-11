@@ -43,6 +43,12 @@ public class TripService
         return response.IsSuccessStatusCode;
     }
 
+    public async Task<bool> DeleteAsync(Guid id)
+    {
+        var response = await _httpClient.DeleteAsync($"{Endpoint}/{id}");
+        return response.IsSuccessStatusCode;
+    }
+
     public async Task<Trip> GetLatestAsync()
     {
         var response = await _httpClient.GetAsync(Endpoint + "/latest");

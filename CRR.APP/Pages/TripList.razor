@@ -147,11 +147,10 @@
         {
             {"Trip", trip}
         },new DialogOptions(){ Width="700px"});
-        if(result != null){
-            TripListData = await _TripService.GetAllAsync();
-            TripListData = TripListData.OrderBy(T=> T.Departure).ToList();
-            StateHasChanged();
-        }
+
+        TripListData = await _TripService.GetAllAsync();
+        StateHasChanged();
+        
     }
     class CarTrip{
         public Trip? LastTrip {get; set;} = null;

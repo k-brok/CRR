@@ -1,3 +1,4 @@
+@using System.Data.Common
 @inject AddressService _AddressService
 @inject CarService _CarService
 @inject TripService _TripService
@@ -104,7 +105,13 @@
                 </RadzenStack>
             </ChildContent>
         </RadzenFieldset>
-        <RadzenButton ButtonType="ButtonType.Submit" Text="Toevoegen" Style="width: 100%;" ButtonStyle="ButtonStyle.Primary" />
+        @if(IsEditMode){
+            <RadzenButton ButtonType="ButtonType.Submit" Text="Opslaan" ButtonStyle="ButtonStyle.Primary" />
+            <RadzenButton Text="Verwijderen" ButtonStyle="ButtonStyle.Danger" Click=DeleteTrip/>
+        } else{
+            <RadzenButton ButtonType="ButtonType.Submit" Text="Toevoegen" Style="width: 100%;" ButtonStyle="ButtonStyle.Primary" />
+        }
+        
     </RadzenStack>
 </RadzenTemplateForm>
 @code{
@@ -271,6 +278,13 @@
         }
         
         DialogService.Close();
+    }
+    async Task DeleteTrip(){
+        bool? result = await DialogService.Confirm("Weet je zeker dat je deze rit wilt verwijderen?", "Rit verwijderen", new ConfirmOptions() { OkButtonText = "Ja", CancelButtonText = "Nee" });
+        if(result == true){
+            await _TripService.DeleteAsync(trip.Id);
+            DialogService.Close();
+        }
     }
     async Task CreateAddress(Address AddressData,AddressChoise Choise)
     {
