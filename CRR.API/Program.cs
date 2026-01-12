@@ -18,8 +18,28 @@ public class Program
         builder.Services.AddEndpointsApiExplorer();
         builder.Services.AddSwaggerGen();
 
-        builder.Services.AddDbContext<AppDbContext>(options =>
-            options.UseSqlite(builder.Configuration.GetConnectionString("DefaultConnection")));
+        // MySQL configuratie inladen
+        var mysqlConfig = new
+        {
+            Host = GetSetting(builder.Configuration, "MYSQL_DB_HOST"),
+            Port = GetSetting(builder.Configuration, "MYSQL_DB_PORT"),
+            User = GetSetting(builder.Configuration, "MYSQL_DB_USER"),
+            Password = GetSetting(builder.Configuration, "MYSQL_DB_PASSWORD"),
+            Database = GetSetting(builder.Configuration, "MYSQL_DB_Database")
+        };
+
+        // Connectionstring bouwen
+        var mysqlConnectionString =
+            $"Server={mysqlConfig.Host};" +
+            $"Port={mysqlConfig.Port};" +
+            $"Database={mysqlConfig.Database};" +
+            $"User={mysqlConfig.User};" +
+            $"Password={mysqlConfig.Password};";
+        
+        builder.Services.AddDbContext<AppDbContext>(
+            dbContextOptions => dbContextOptions
+                .UseMySql(mysqlConnectionString, ServerVersion.AutoDetect(mysqlConnectionString))
+        );
 
         builder.Services.AddScoped<IAddressService, AddressService>();
         builder.Services.AddScoped<ITripService, TripService>();
@@ -82,5 +102,18 @@ public class Program
         app.MapCarEndpoints();
 
         app.Run();
+    }
+
+    private static string? GetSetting(IConfiguration configuration, string key, bool required = true)
+    {
+        var value =
+            Environment.GetEnvironmentVariable(key)
+            ?? configuration[key];
+
+        if (string.IsNullOrWhiteSpace(value) && required)
+            throw new InvalidOperationException(
+                $"Configuratie ontbreekt: {key}");
+
+        return value!;
     }
 }
