@@ -10,9 +10,9 @@ public class AddressService
     private readonly HttpClient _httpClient;
     private const string Endpoint = "api/addresses";
 
-    public AddressService(HttpClient httpClient)
+    public AddressService(IHttpClientFactory factory)
     {
-        _httpClient = httpClient;
+        _httpClient = factory.CreateClient("PublicApi");
     }
 
     public async Task<Address> GetAsync(Guid AddressId)
