@@ -17,6 +17,7 @@ public class Trip
 	public int PrivateMileage { get; set; }
 	public Car Car { get; set; }
 	public Guid CarId { get; set; }
+	public bool Deleted {get; set;}
 	[NotMapped]
 	public int DefaultMileage
 	{
