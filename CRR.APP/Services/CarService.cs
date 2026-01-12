@@ -10,9 +10,9 @@ public class CarService
     private readonly HttpClient _httpClient;
     private const string Endpoint = "api/Cars";
 
-    public CarService(HttpClient httpClient)
+    public CarService(IHttpClientFactory factory)
     {
-        _httpClient = httpClient;
+        _httpClient = factory.CreateClient("PublicApi");
     }
 
     public async Task<Car> GetAsync(Guid CarId)

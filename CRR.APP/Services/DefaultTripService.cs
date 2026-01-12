@@ -10,9 +10,9 @@ public class DefaultTripService
     private readonly HttpClient _httpClient;
     private const string Endpoint = "api/defaultTrips";
 
-    public DefaultTripService(HttpClient httpClient)
+    public DefaultTripService(IHttpClientFactory factory)
     {
-        _httpClient = httpClient;
+        _httpClient = factory.CreateClient("PublicApi");
     }
 
     public async Task<List<DefaultTrip>> GetAllAsync()

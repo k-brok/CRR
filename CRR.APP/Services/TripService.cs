@@ -11,9 +11,9 @@ public class TripService
     private readonly HttpClient _httpClient;
     private const string Endpoint = "api/trips";
 
-    public TripService(HttpClient httpClient)
+    public TripService(IHttpClientFactory factory)
     {
-        _httpClient = httpClient;
+        _httpClient = factory.CreateClient("PublicApi");
     }
 
     public async Task<List<Trip>> GetAllAsync()

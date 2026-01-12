@@ -120,11 +120,15 @@
     private string ToTitle{get; set;}
     private bool FullPrivate{get; set;} = false;
     private int PrivateMileages{get; set;}
+
     [Parameter]
     public Trip? trip {get; set;} = null;
+
     private List<Address> AllAddresses {get; set;} = new List<Address>();
     private List<Car> AllCars {get; set;} = new List<Car>();
+
     protected override async Task OnInitializedAsync(){
+        _GPS.OnGPSUpdate += UpdateGPSLocation;
         _GPS.GetGPSLocation();
 
         Trip PreviousTrip = await _TripService.GetLatestAsync();
@@ -153,12 +157,19 @@
             trip.To = AllAddresses.FirstOrDefault(A=> A.Id == trip.ToId);
         }
 
-        if(_GPS.Latitude != 0 && _GPS.Longitude != 0){
+        UpdateGPSLocation();
+
+        await base.OnInitializedAsync();
+    }
+
+    private void UpdateGPSLocation()
+    {
+        if(_GPS.Latitude != null && _GPS.Longitude != null){
             AllAddresses = AllAddresses
             .OrderBy(p =>
             {
-                double dLat = p.Latitude - _GPS.Latitude;
-                double dLon = p.Longitude - _GPS.Longitude;
+                double dLat = p.Latitude - (double)_GPS.Latitude;
+                double dLon = p.Longitude - (double)_GPS.Longitude;
                 return Math.Sqrt(Math.Pow(dLat, 2) + Math.Pow(dLon, 2));
             })
             .ToList();
@@ -166,9 +177,9 @@
         else{
             AllAddresses = AllAddresses.OrderBy(A => A.Name).ToList();
         }
-
-        await base.OnInitializedAsync();
+        StateHasChanged();
     }
+
     private async Task AutoFillValues()
     {
         FromTitle = BuildTitle(trip.From?.Name, trip.DepartureMileage);
