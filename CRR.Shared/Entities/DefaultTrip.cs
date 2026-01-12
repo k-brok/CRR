@@ -12,5 +12,6 @@ namespace CRR.Shared.Entities{
 		public int DefaultMileage { get; set; }
 		public int PrivateMileage { get; set; }
 		public TimeSpan TripTime { get; set; }
+		public bool Deleted {get; set;}
 	}
 }
